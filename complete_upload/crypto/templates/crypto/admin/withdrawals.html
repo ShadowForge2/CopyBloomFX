@@ -1,0 +1,82 @@
+{% extends "crypto/admin/base_admin.html" %}
+{% load static %}
+
+{% block title %}Withdrawals — Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Withdrawal management</h1>
+  <p class="muted">Once per 24h. Approve/reject manually.</p>
+
+  <div class="filter-row">
+    <span>Status:</span>
+    <a href="?status=pending">Pending</a> | 
+    <a href="?status=approved">Approved</a> | 
+    <a href="?status=rejected">Rejected</a> | 
+    <a href="?">All</a>
+  </div>
+
+  <div class="card table-card">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Amount</th>
+            <th>Network</th>
+            <th>Wallet</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for w in withdrawals %}
+          <tr class="{% if w.user.is_banned %}row-banned{% elif w.user.is_flagged %}row-flagged{% endif %}">
+            <td>{{ w.id }}</td>
+            <td>{{ w.user.username }}</td>
+            <td>${{ w.amount|floatformat:2 }}</td>
+            <td>{{ w.network }}</td>
+            <td class="truncate" title="{{ w.wallet_address }}">{{ w.wallet_address|default:'—'|truncatechars:20 }}</td>
+            <td><span class="status-{{ w.status }}">{{ w.status }}</span></td>
+            <td>{{ w.created_at|date:"M j, H:i" }}</td>
+            <td>
+              {% if w.status == 'pending_admin_approval' %}
+                {% if not w.user.is_flagged and not w.user.is_banned %}
+                  <form method="post" action="{% url 'crypto:admin_withdrawal_approve' w.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                  </form>
+                  <form method="post" action="{% url 'crypto:admin_withdrawal_reject' w.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                  </form>
+                {% else %}
+                  <span class="text-muted">Blocked user</span>
+                {% endif %}
+              {% elif w.status == 'pending' %}
+                {% if not w.user.is_flagged and not w.user.is_banned %}
+                  <form method="post" action="{% url 'crypto:admin_withdrawal_approve' w.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                  </form>
+                  <form method="post" action="{% url 'crypto:admin_withdrawal_reject' w.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                  </form>
+                {% else %}
+                  <span class="muted">Cannot approve (flagged/banned)</span>
+                {% endif %}
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="empty">No withdrawals.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

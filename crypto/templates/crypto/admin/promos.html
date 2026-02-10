@@ -1,0 +1,89 @@
+{% extends "crypto/admin/base_admin.html" %}
+{% load static %}
+
+{% block title %}Promos — Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Promo code management</h1>
+
+  <!-- Create promo -->
+  <div class="card">
+    <h2>Create promo</h2>
+    <form method="post" action="{% url 'crypto:admin_promos' %}" class="form-inline">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-success">Create</button>
+    </form>
+  </div>
+
+  <div class="admin-grid">
+    <!-- Promo codes list -->
+    <div class="card">
+      <h2>Promo codes</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Bonus</th>
+              <th>Usage</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in promos %}
+            <tr>
+              <td><strong>{{ p.code }}</strong></td>
+              <td>${{ p.bonus_min|floatformat:2 }}–${{ p.bonus_max|floatformat:2 }}</td>
+              <td>{{ p.usage_count|default:0 }}{% if p.usage_limit %} / {{ p.usage_limit }}{% endif %}</td>
+              <td><span class="status-{{ p.status }}">{{ p.status }}</span></td>
+              <td>
+                <form method="post" action="{% url 'crypto:admin_promo_toggle' p.pk %}" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm {% if p.status == 'active' %}btn-danger{% else %}btn-success{% endif %}">
+                    {% if p.status == 'active' %}Disable{% else %}Enable{% endif %}
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="empty">No promos.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Redemption history -->
+    <div class="card">
+      <h2>Redemption history</h2>
+      <div class="table-wrap table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Code</th>
+              <th>Bonus</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in redemptions %}
+            <tr>
+              <td>{{ r.user.username }}</td>
+              <td>{{ r.promo_code.code }}</td>
+              <td>${{ r.bonus_amount|floatformat:2 }}</td>
+              <td>{{ r.created_at|date:"M j, H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="empty">No redemptions.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

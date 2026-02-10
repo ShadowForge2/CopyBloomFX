@@ -1,0 +1,19 @@
+[Unit]
+Description=gunicorn daemon for crypto platform
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/crypto_platform/repo
+Environment="PATH=/var/www/crypto_platform/venv/bin"
+ExecStart=/var/www/crypto_platform/venv/bin/gunicorn -c gunicorn_config.py crypto_platform.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

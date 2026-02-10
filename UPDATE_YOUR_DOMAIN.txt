@@ -1,0 +1,29 @@
+# UPDATE THESE SETTINGS FOR YOUR DOMAIN: copybloomfx.great-site.net
+
+# 1. EDIT infinityfree_settings.py and update:
+
+ALLOWED_HOSTS = ['copybloomfx.great-site.net', 'www.copybloomfx.great-site.net']
+
+PAYSTACK_CALLBACK_URL = 'https://copybloomfx.great-site.net/paystack/callback/'
+
+# 2. DATABASE CREDENTIALS (get these from InfinityFree Control Panel):
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'epiz_xxxxxx_crypto',  # Replace with your actual database name
+        'USER': 'epiz_xxxxxx',          # Replace with your actual username
+        'PASSWORD': 'your-db-password', # Replace with your actual password
+        'HOST': 'sqlxxx.infinityfree.com', # Replace with your actual host
+        'PORT': '3306',
+    }
+}
+
+# 3. STATIC/MEDIA PATHS (update with your actual InfinityFree paths):
+STATIC_ROOT = '/storage/ssd5/xxx/xxxxx/public_html/static/'
+MEDIA_ROOT = '/storage/ssd5/xxx/xxxxx/public_html/media/'
+
+# 4. UPDATE .env file:
+PAYSTACK_CALLBACK_URL=https://copybloomfx.great-site.net/paystack/callback/
+
+# 5. YOUR PLATFORM WILL BE LIVE AT:
+# https://copybloomfx.great-site.net

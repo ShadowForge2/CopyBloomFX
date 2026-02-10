@@ -1,0 +1,46 @@
+# PRODUCTION ENVIRONMENT TEMPLATE
+# Copy this to .env on your production server and update ALL values
+
+# Paystack Production Keys (CRITICAL - MUST BE LIVE KEYS)
+# GO TO: https://dashboard.paystack.co/settings/api_keys
+# Switch to LIVE mode and generate new keys
+PAYSTACK_SECRET_KEY=sk_live_YOUR_LIVE_SECRET_KEY_HERE
+PAYSTACK_PUBLIC_KEY=pk_live_YOUR_LIVE_PUBLIC_KEY_HERE
+PAYSTACK_CALLBACK_URL=https://yourdomain.com/paystack/callback/
+
+# Django Configuration (CRITICAL)
+DEBUG=False
+SECRET_KEY=GENERATE_NEW_SECURE_KEY_HERE
+ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+
+# Database Configuration
+DB_NAME=crypto_prod
+DB_USER=postgres
+DB_PASSWORD=your_secure_db_password
+DB_HOST=localhost
+DB_PORT=5432
+
+# Email Configuration
+EMAIL_HOST=smtp.sendgrid.net
+EMAIL_PORT=587
+EMAIL_HOST_USER=apikey
+EMAIL_HOST_PASSWORD=your_sendgrid_api_key
+DEFAULT_FROM_EMAIL=noreply@yourdomain.com
+
+# Redis Configuration
+REDIS_URL=redis://localhost:6379/0
+
+# Security
+ADMIN_URL=admin-secret-url-12345
+SENTRY_DSN=your_sentry_dsn_here
+
+# AWS S3 (for static files)
+USE_S3=True
+AWS_ACCESS_KEY_ID=your_aws_access_key
+AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+AWS_STORAGE_BUCKET_NAME=your-s3-bucket-name
+AWS_S3_REGION_NAME=us-east-1
+
+# Celery
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0

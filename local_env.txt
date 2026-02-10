@@ -1,0 +1,18 @@
+# Django Configuration
+DJANGO_SETTINGS_MODULE=crypto_platform.settings
+SECRET_KEY=AxG@=7"bkkjJ.:h{aaYGMeRc@NKQ*I)cU"~y1,>5\-;ymBDAW"
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Database Configuration
+DB_NAME=BASE_DIR / 'db.sqlite3'
+
+# Paystack Configuration
+PAYSTACK_SECRET_KEY=sk_test_your_secret_key_here
+PAYSTACK_PUBLIC_KEY=pk_test_your_public_key_here
+PAYSTACK_CALLBACK_URL=http://127.0.0.1:8000/paystack/callback/
+
+# Local Payment Configuration
+LOCAL_PAYMENT_CONVERSION_RATE=1600
+LOCAL_PAYMENT_MIN_DEPOSIT=7.5
+LOCAL_PAYMENT_MIN_WITHDRAWAL=2.5

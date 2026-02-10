@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risk Warning Ticker Demo</title>
+    <link rel="stylesheet" href="crypto/static/css/ticker.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+        .demo-content {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .demo-section {
+            background: white;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-content">
+        <h1>Risk Warning Ticker Demo</h1>
+        
+        <div class="demo-section">
+            <h2>About This Ticker</h2>
+            <p>This is a professional risk warning ticker designed for cryptocurrency investment platforms. It displays important disclaimers and risk warnings in a continuous, non-intrusive manner.</p>
+            
+            <div class="info-box">
+                <strong>Features:</strong>
+                <ul>
+                    <li>Continuous horizontal scrolling with no pauses</li>
+                    <li>Fixed position at bottom of screen</li>
+                    <li>Responsive design for desktop and mobile</li>
+                    <li>Professional fintech appearance</li>
+                    <li>Non-dismissible and always visible</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Risk Messages Displayed</h2>
+            <p>The ticker continuously scrolls through these important risk warnings:</p>
+            <ul>
+                <li>⚠️ Risk Warning: Cryptocurrency trading involves significant risk and may result in the loss of all invested capital.</li>
+                <li>⚠️ Copy Trading Notice: Copy trading does not guarantee profits. Copied traders' strategies may change or fail at any time.</li>
+                <li>⚠️ Disclaimer: This platform does not provide financial or investment advice. All trading decisions are made at your own risk.</li>
+                <li>⚠️ High Volatility Alert: Digital asset prices are highly volatile. Past performance does not guarantee future results.</li>
+                <li>⚠️ Capital Risk: Only invest funds you can afford to lose. You are fully responsible for all trades executed on this platform.</li>
+            </ul>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Technical Implementation</h2>
+            <p>The ticker uses modern CSS animations for smooth performance and JavaScript for dynamic content management. It's optimized for both desktop and mobile devices.</p>
+            
+            <div class="info-box">
+                <strong>Performance Features:</strong>
+                <ul>
+                    <li>GPU-accelerated animations</li>
+                    <li>Pause when tab is not visible</li>
+                    <li>Responsive text sizing</li>
+                    <li>Seamless infinite loop</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Integration</h2>
+            <p>To integrate this ticker into your Django platform:</p>
+            <ol>
+                <li>Copy the CSS file to <code>crypto/static/css/ticker.css</code></li>
+                <li>Copy the JS file to <code>crypto/static/js/ticker.js</code></li>
+                <li>Add the CSS and JS includes to your base template</li>
+                <li>The ticker will automatically appear on all pages</li>
+            </ol>
+        </div>
+    </div>
+    
+    <script src="crypto/static/js/ticker.js"></script>
+</body>
+</html>

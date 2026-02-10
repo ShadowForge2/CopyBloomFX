@@ -1,0 +1,30 @@
+{% extends "crypto/base.html" %}
+{% load static %}
+
+{% block title %}Referral / Promos — Copy Trade{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Referral / Promos</h1>
+
+  <div class="card">
+    <h2>Redeem promo code</h2>
+    <p class="muted">Bonus credited to locked balance.</p>
+    <form method="post" action="{% url 'crypto:referral' %}">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-success">Redeem</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Referral stats</h2>
+    <div class="referral-stats">
+      <div><span class="label">Total referrals</span><div class="value">{{ profile.total_referrals|default:0 }}</div></div>
+      <div><span class="label">Valid referrals</span><div class="value">{{ profile.valid_referrals|default:0 }}</div></div>
+      <div><span class="label">Referral earnings</span><div class="value">${{ profile.referral_earnings|floatformat:2 }}</div></div>
+    </div>
+    <p><strong>Your referral code:</strong> <code class="mono">{{ profile.referral_code|default:'—' }}</code></p>
+  </div>
+</div>
+{% endblock %}

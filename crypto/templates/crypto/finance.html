@@ -1,0 +1,1425 @@
+{% extends "crypto/base.html" %}
+{% load static %}
+
+{% block title %}Finance — Copy Trade{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Finance</h1>
+
+  <div class="overview-cards">
+    <div class="card"><span class="label">Total Deposits</span><div class="value">${{ overview.total_deposits|floatformat:2 }}</div></div>
+    <div class="card"><span class="label">Pending Deposits</span><div class="value warning">${{ overview.pending_deposits|floatformat:2 }}</div></div>
+    <div class="card"><span class="label">Total Withdrawals</span><div class="value">${{ overview.total_withdrawals|floatformat:2 }}</div></div>
+    <div class="card"><span class="label">Referral Bonuses</span><div class="value">${{ overview.referral_bonuses|floatformat:2 }}</div></div>
+    <div class="card"><span class="label">Daily Rewards</span><div class="value">${{ overview.daily_rewards|floatformat:2 }}</div></div>
+  </div>
+
+  <div class="finance-grid">
+    <div class="card">
+      <h2>Deposit</h2>
+      <p class="muted">Min ${{ min_deposit }}. Any time. 30-day lock per deposit.</p>
+      
+      <!-- Payment Method Selection -->
+      <div class="payment-method-tabs">
+        <button type="button" class="tab-btn active" onclick="showTab('crypto-deposit')">Crypto Methods</button>
+        <button type="button" class="tab-btn" onclick="showTab('local-deposit')">Local Methods</button>
+      </div>
+      
+      <!-- Crypto Deposit Tab -->
+      <div id="crypto-deposit" class="tab-content active">
+        <form method="post" action="{% url 'crypto:finance' %}">
+          {% csrf_token %}
+          
+          <div class="form-group">
+            <label for="id_amount">Amount ($)</label>
+            <input type="number" name="amount" id="id_amount" class="form-control" min="{{ min_deposit }}" step="0.01" placeholder="Enter amount in USD" required>
+            <small class="form-text text-muted">Minimum: ${{ min_deposit }}</small>
+          </div>
+          
+          <div class="form-group">
+            <label for="id_network">Network</label>
+            <select name="network" id="id_network" class="form-control" required>
+              {% for network in networks %}
+                <option value="{{ network }}">{{ network }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <button type="submit" name="deposit" class="btn btn-success">Create deposit</button>
+        </form>
+      </div>
+      
+      <!-- Local Deposit Tab -->
+      <div id="local-deposit" class="tab-content">
+        <div class="local-methods-frame">
+          <div class="alert alert-info">
+            <strong>Local Payment via Paystack</strong><br>
+            • Conversion rate: ₦{{ conversion_rate }} = 1 USDT<br>
+            • Minimum: $7.5 USDT<br>
+            • Instant payment via Paystack
+          </div>
+          
+          <form method="post" action="{% url 'crypto:finance' %}" id="local-deposit-form" class="compact-form">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="local_amount_usdt">Amount (USDT)</label>
+              <input type="number" 
+                     name="amount_usdt" 
+                     id="local_amount_usdt" 
+                     class="form-control" 
+                     min="7.5" 
+                     step="0.01" 
+                     placeholder="Enter amount in USDT"
+                     oninput="calculateLocalNGN()">
+              <small class="form-text text-muted">Minimum: $7.5 USDT</small>
+            </div>
+            
+            <div class="form-group">
+              <label>Equivalent Amount (NGN)</label>
+              <div class="naira-amount">₦<span id="local-ngn-amount">0.00</span></div>
+              <small class="form-text text-muted">Calculated at ₦{{ conversion_rate }} = 1 USDT</small>
+            </div>
+            
+            <button type="submit" name="local_deposit" class="btn btn-primary">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                <line x1="1" y1="10" x2="23" y2="10"></line>
+              </svg>
+              Pay with Paystack
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>Withdraw</h2>
+      <p class="muted">Min ${{ min_withdrawal }}. Once per 24h. Admin approval.</p>
+      
+      <!-- Withdrawal Method Selection -->
+      <div class="payment-method-tabs">
+        <button type="button" class="tab-btn active" onclick="showWithdrawalTab('crypto-withdrawal')">Crypto Methods</button>
+        <button type="button" class="tab-btn" onclick="showWithdrawalTab('local-withdrawal')">Local Methods</button>
+      </div>
+      
+      <!-- Crypto Withdrawal Tab -->
+      <div id="crypto-withdrawal" class="tab-content active">
+        <form method="post" action="{% url 'crypto:finance' %}">
+          {% csrf_token %}
+          
+          <div class="form-group">
+            <label for="withdrawal_amount">Amount ($)</label>
+            <input type="number" name="amount" id="withdrawal_amount" class="form-control" min="{{ min_withdrawal }}" step="0.01" placeholder="Enter amount in USD" required>
+            <small class="form-text text-muted">Minimum: ${{ min_withdrawal }}</small>
+          </div>
+          
+          <div class="form-group">
+            <label for="withdrawal_network">Network</label>
+            <select name="network" id="withdrawal_network" class="form-control" required>
+              {% for network in networks %}
+                <option value="{{ network }}">{{ network }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="withdrawal_wallet">Wallet address</label>
+            <input type="text" name="wallet_address" id="withdrawal_wallet" class="form-control" placeholder="Enter your wallet address">
+          </div>
+          
+          <button type="submit" name="withdrawal" class="btn btn-primary">Request withdrawal</button>
+        </form>
+      </div>
+      
+      <!-- Local Withdrawal Tab -->
+      <div id="local-withdrawal" class="tab-content">
+        <div class="local-methods-frame">
+          <div class="alert alert-warning">
+            <strong>⚠️ IMPORTANT WARNING:</strong><br>
+            You are fully responsible for providing correct bank details.<br>
+            Withdrawals sent to incorrect accounts are IRREVERSIBLE.<br>
+            The platform bears NO LIABILITY for wrong details.<br>
+            <strong>Conversion rate: ₦1430 = 1 USDT</strong>
+          </div>
+          
+          <div class="balance-info">
+            <div class="balance-item">
+              <span>Available Balance:</span>
+              <strong>${{ profile.withdrawable_balance|floatformat:2 }}</strong>
+            </div>
+          </div>
+          
+          <form method="post" action="{% url 'crypto:finance' %}" id="local-withdrawal-form" class="compact-form">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="local_withdrawal_amount">Amount (USDT)</label>
+              <input type="number" 
+                     name="amount_usdt" 
+                     id="local_withdrawal_amount" 
+                     class="form-control" 
+                     min="2.5" 
+                     max="{{ profile.withdrawable_balance }}"
+                     step="0.01" 
+                     placeholder="Enter amount"
+                     oninput="calculateWithdrawalNGN()">
+              <small class="form-text">Min: $2.5 | Max: ${{ profile.withdrawable_balance|floatformat:2 }}</small>
+            </div>
+            
+            <div class="form-group">
+              <label>Equivalent (NGN)</label>
+              <div class="naira-amount">₦<span id="withdrawal-ngn-amount">0.00</span></div>
+              <small class="form-text">Rate: ₦1430 = 1 USDT</small>
+            </div>
+            
+            <div class="form-group">
+              <label for="local_bank_name">Bank Name</label>
+              <input type="text" 
+                     name="bank_name" 
+                     id="local_bank_name" 
+                     class="form-control" 
+                     placeholder="e.g., Access Bank, GTBank"
+                     required>
+            </div>
+            
+            <div class="form-group">
+              <label for="local_account_number">Account Number</label>
+              <input type="text" 
+                     name="account_number" 
+                     id="local_account_number" 
+                     class="form-control" 
+                     placeholder="10-digit account number"
+                     maxlength="10"
+                     pattern="[0-9]{10}"
+                     required>
+              <small class="form-text">Exactly 10 digits</small>
+            </div>
+            
+            <div class="form-group">
+              <label for="local_account_holder_name">Account Holder Name</label>
+              <input type="text" 
+                     name="account_holder_name" 
+                     id="local_account_holder_name" 
+                     class="form-control" 
+                     placeholder="Name on bank account"
+                     required>
+            </div>
+            
+            <div class="form-group">
+              <div class="checkbox-wrapper">
+                <input type="checkbox" name="confirm_details" id="local_confirm_details" required>
+                <label for="local_confirm_details">
+                  <strong>I confirm bank details are correct.</strong><br>
+                  Wrong account withdrawals are irreversible.<br>
+                  I accept full responsibility.
+                </label>
+              </div>
+            </div>
+            
+            <button type="submit" name="local_withdrawal" class="btn btn-primary">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"></path>
+              </svg>
+              Submit Withdrawal
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="finance-grid">
+    <div class="card">
+      <h2>Deposit history</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Amount</th><th>Network</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody>
+            {% for d in all_deposits %}
+            <tr>
+              <td>${{ d.amount|floatformat:2 }}</td>
+              <td>{{ d.network }}</td>
+              <td>
+                {% if d.type == 'paystack' %}
+                  {% if d.status == 'pending' %}
+                    <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: 500;">{{ d.status }}</span>
+                  {% elif d.status == 'paid' %}
+                    <span style="background: #d1fae5; color: #065f46; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: 500;">{{ d.status }}</span>
+                  {% elif d.status == 'failed' %}
+                    <span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: 500;">{{ d.status }}</span>
+                  {% else %}
+                    <span class="status-{{ d.status }}">{{ d.status }}</span>
+                  {% endif %}
+                {% else %}
+                  <span class="status-{{ d.status }}">{{ d.status }}</span>
+                {% endif %}
+              </td>
+              <td>{{ d.created_at|date:"M j, Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="empty">No deposits yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Withdrawal history</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Amount</th><th>Network</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody>
+            {% for w in all_withdrawals %}
+            <tr>
+              <td>${{ w.amount|floatformat:2 }}</td>
+              <td>{{ w.network }}</td>
+              <td>
+                {% if w.type == 'local' %}
+                  {% if w.status == 'pending_admin_approval' %}
+                    <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: 500;">Pending Approval</span>
+                  {% elif w.status == 'approved' %}
+                    <span style="background: #dbeafe; color: #1e40af; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: 500;">{{ w.status|title }}</span>
+                  {% elif w.status == 'completed' %}
+                    <span style="background: #d1fae5; color: #065f46; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: 500;">{{ w.status|title }}</span>
+                  {% elif w.status == 'rejected' %}
+                    <span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: 500;">{{ w.status|title }}</span>
+                  {% else %}
+                    <span class="status-{{ w.status }}">{{ w.status|title }}</span>
+                  {% endif %}
+                {% else %}
+                  {% if w.status == 'pending_admin_approval' %}
+                    <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: 500;">Pending Approval</span>
+                  {% elif w.status == 'approved' %}
+                    <span style="background: #dbeafe; color: #1e40af; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: 500;">{{ w.status|title }}</span>
+                  {% elif w.status == 'rejected' %}
+                    <span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: 500;">{{ w.status|title }}</span>
+                  {% else %}
+                    <span class="status-{{ w.status }}">{{ w.status|title }}</span>
+                  {% endif %}
+                {% endif %}
+              </td>
+              <td>{{ w.created_at|date:"M j, Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="empty">No withdrawals yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Deposit Confirmation Modal -->
+{% if last_deposit %}
+<div id="depositModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>{% if last_deposit.deposit_type == 'local' %}Paystack Deposit Initiated{% else %}Deposit Created Successfully{% endif %}</h3>
+      <button type="button" class="modal-close" onclick="closeDepositModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="deposit-info">
+        <div class="info-row">
+          <span class="label">Amount:</span>
+          <span class="value">${{ last_deposit.amount }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Payment Method:</span>
+          <span class="value">{{ last_deposit.network }}</span>
+        </div>
+        {% if last_deposit.deposit_type == 'local' %}
+        <div class="info-row">
+          <span class="label">Reference:</span>
+          <span class="value">{{ last_deposit.paystack_reference }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Status:</span>
+          <span class="value pending">Awaiting Payment</span>
+        </div>
+        {% else %}
+        <div class="info-row">
+          <span class="label">Status:</span>
+          <span class="value pending">Pending Confirmation</span>
+        </div>
+        {% endif %}
+      </div>
+      
+      {% if last_deposit.deposit_type == 'local' %}
+      <div class="wallet-section">
+        <h4>Payment Details:</h4>
+        <div class="wallet-address-container">
+          <code id="modal-wallet-address">{{ last_deposit.wallet_address }}</code>
+          <button type="button" class="copy-btn" onclick="copyModalWalletAddress()" title="Copy details">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <div class="alert alert-info">
+        <strong>Important:</strong> You will be redirected to Paystack to complete your payment of ${{ last_deposit.amount }}.
+        <br><strong>Note:</strong> This payment session is reserved for you for <span id="countdown">5:00</span> minutes only.
+      </div>
+      {% else %}
+      <div class="wallet-section">
+        <h4>Send funds to this address:</h4>
+        <div class="wallet-address-container">
+          <code id="modal-wallet-address">{{ last_deposit.wallet_address }}</code>
+          <button type="button" class="copy-btn" onclick="copyModalWalletAddress()" title="Copy address">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <div class="alert alert-info">
+        <strong>Important:</strong> Send exactly ${{ last_deposit.amount }} to the address above. Your deposit will be approved once confirmed on the blockchain.
+        <br><strong>Note:</strong> This wallet address is reserved for you for <span id="countdown">5:00</span> minutes only.
+      </div>
+      {% endif %}
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeDepositModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="copyModalWalletAddress()">Copy Details</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<script>
+// Show modal when page loads with last_deposit
+document.addEventListener('DOMContentLoaded', function() {
+  calculateLocalNGN();
+  calculateWithdrawalNGN();
+  
+  // Show deposit modal if there's a last deposit
+  {% if last_deposit %}
+  console.log('Last deposit found, showing modal');
+  console.log('Deposit amount:', '{{ last_deposit.amount }}');
+  console.log('Deposit network:', '{{ last_deposit.network }}');
+  console.log('Deposit wallet:', '{{ last_deposit.wallet_address }}');
+  console.log('Created at:', '{{ last_deposit.created_at }}');
+  console.log('Created timestamp:', '{{ last_deposit.created_timestamp }}');
+  console.log('Deposit ID:', '{{ last_deposit.deposit_id }}');
+  console.log('Deposit type:', '{{ last_deposit.deposit_type }}');
+  
+  setTimeout(function() {
+    console.log('Triggering showDepositModal...');
+    showDepositModal();
+  }, 500);
+  
+  // Store creation time for accurate countdown - use timestamp for reliability
+  window.depositCreatedAt = '{{ last_deposit.created_at|default:"" }}';
+  window.depositCreatedTimestamp = {{ last_deposit.created_timestamp|default:"null" }};
+  window.depositId = {{ last_deposit.deposit_id|default:"null" }};
+  window.depositType = '{{ last_deposit.deposit_type|default:"crypto" }}';
+  window.expiresAt = '{{ last_deposit.expires_at|default:"" }}';
+  {% else %}
+  console.log('No last deposit found');
+  {% endif %}
+});
+
+// Modal functions
+function showDepositModal() {
+  const modal = document.getElementById('depositModal');
+  if (modal) {
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    
+    // Only start countdown timer for crypto deposits, not Paystack deposits
+    if (window.depositType === 'crypto') {
+      startCountdown();
+    } else {
+      // For Paystack deposits, hide the countdown elements
+      const countdownElement = document.getElementById('countdown');
+      if (countdownElement) {
+        countdownElement.style.display = 'none';
+      }
+      const timerContainer = document.querySelector('.timer-container');
+      if (timerContainer) {
+        timerContainer.style.display = 'none';
+      }
+    }
+    
+    // Start real-time status checking
+    startStatusChecking();
+  }
+}
+
+function closeDepositModal() {
+  const modal = document.getElementById('depositModal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+}
+
+// Real-time status checking
+function startStatusChecking() {
+  if (!window.depositId) return;
+  
+  console.log('Starting status checking for deposit ID:', window.depositId);
+  console.log('Deposit type:', window.depositType);
+  
+  const statusInterval = setInterval(function() {
+    const url = `/check-deposit-status/?deposit_id=${window.depositId}&deposit_type=${window.depositType || 'crypto'}`;
+    
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          console.error('Status check error:', data.error);
+          return;
+        }
+        
+        console.log('Status check result:', data);
+        
+        if (data.approved) {
+          console.log('Deposit approved! Showing success animation');
+          showSuccessAnimation();
+          clearInterval(statusInterval);
+        } else if (data.rejected) {
+          console.log('Deposit rejected');
+          showRejectedMessage();
+          clearInterval(statusInterval);
+        }
+      })
+      .catch(error => {
+        console.error('Status check error:', error);
+      });
+  }, 3000); // Check every 3 seconds
+}
+
+// Success animation
+function showSuccessAnimation() {
+  const modal = document.getElementById('depositModal');
+  const modalBody = modal.querySelector('.modal-body');
+  
+  // Create success overlay
+  const successOverlay = document.createElement('div');
+  successOverlay.className = 'success-overlay';
+  
+  // Different messages for crypto vs Paystack deposits
+  const isPaystack = window.depositType === 'local';
+  const successTitle = isPaystack ? 'Payment Successful!' : 'Deposit Approved!';
+  const successMessage = isPaystack ? 
+    'Your payment has been successfully processed and credited to your account.' :
+    'Your deposit has been successfully approved and processed.';
+  
+  successOverlay.innerHTML = `
+    <div class="success-animation">
+      <div class="success-icon">
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <path d="M20 6L9 17l-5-5"></path>
+        </svg>
+      </div>
+      <h2>${successTitle}</h2>
+      <p>${successMessage}</p>
+    </div>
+  `;
+  
+  modalBody.appendChild(successOverlay);
+  
+  // Clear session data to prevent modal from reappearing
+  fetch('/clear-deposit-session/', {method: 'POST'})
+    .then(response => response.json())
+    .then(data => {
+      console.log('Session cleared:', data);
+    })
+    .catch(error => {
+      console.error('Failed to clear session:', error);
+    });
+  
+  // Add success styles
+  const style = document.createElement('style');
+  style.textContent = `
+    .success-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(16, 185, 129, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    .success-animation {
+      text-align: center;
+      color: white;
+      animation: scaleIn 0.6s ease-in-out;
+    }
+    
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1rem;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 1s infinite;
+    }
+    
+    .success-icon svg {
+      color: #10b981;
+    }
+    
+    .success-animation h2 {
+      margin: 0 0 0.5rem 0;
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    
+    .success-animation p {
+      margin: 0;
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes scaleIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // Auto close after 3 seconds
+  setTimeout(function() {
+    closeDepositModal();
+  }, 3000);
+}
+
+// Rejected message
+function showRejectedMessage() {
+  const modalBody = document.querySelector('.modal-body');
+  const statusElement = modalBody.querySelector('.info-row:last-child .value');
+  
+  if (statusElement) {
+    statusElement.textContent = 'Rejected';
+    statusElement.style.color = '#dc2626';
+    statusElement.style.fontWeight = 'bold';
+  }
+  
+  // Update alert message
+  const alertElement = modalBody.querySelector('.alert-info');
+  if (alertElement) {
+    alertElement.className = 'alert alert-warning';
+    alertElement.innerHTML = '<strong>Deposit Rejected:</strong> Your deposit has been rejected. Please contact support for more information.';
+  }
+}
+
+// Copy modal wallet address function
+function copyModalWalletAddress() {
+  const walletAddress = document.getElementById('modal-wallet-address');
+  if (walletAddress) {
+    navigator.clipboard.writeText(walletAddress.textContent).then(function() {
+      // Show temporary success message
+      const copyBtn = document.querySelector('.copy-btn');
+      const originalHTML = copyBtn.innerHTML;
+      copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"></path><polyline points="16 6 20 6 20 10"></polyline></svg>';
+      copyBtn.style.background = '#10b981';
+      
+      // Update all copy buttons
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"></path><polyline points="16 6 20 6 20 10"></polyline></svg>';
+        btn.style.background = '#10b981';
+      });
+      
+      setTimeout(function() {
+        copyBtn.innerHTML = originalHTML;
+        copyBtn.style.background = '';
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+          btn.style.background = '';
+        });
+      }, 2000);
+    }).catch(function(err) {
+      console.error('Failed to copy: ', err);
+    });
+  }
+}
+
+// Original copy wallet address function (for compatibility)
+function copyWalletAddress() {
+  copyModalWalletAddress();
+}
+
+// Countdown timer for wallet expiration
+function startCountdown() {
+  const countdownElement = document.getElementById('countdown');
+  if (!countdownElement) return;
+  
+  console.log('Starting countdown, creation time:', window.depositCreatedAt);
+  console.log('Starting countdown, timestamp:', window.depositCreatedTimestamp);
+  
+  // Calculate actual time remaining using timestamp for reliability
+  let timeLeft;
+  if (window.depositCreatedTimestamp) {
+    // Use timestamp for most reliable calculation
+    const createdTimestamp = window.depositCreatedTimestamp;
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const elapsedSeconds = currentTimestamp - createdTimestamp;
+    timeLeft = 300 - elapsedSeconds; // 5 minutes (300 seconds) minus elapsed time
+    
+    console.log('Created timestamp:', createdTimestamp);
+    console.log('Current timestamp:', currentTimestamp);
+    console.log('Elapsed seconds:', elapsedSeconds);
+    console.log('Time remaining:', timeLeft);
+  } else if (window.depositCreatedAt) {
+    // Fallback to date string parsing
+    try {
+      let createdAt;
+      const timeString = window.depositCreatedAt;
+      
+      if (timeString.includes('T')) {
+        createdAt = new Date(timeString);
+      } else {
+        createdAt = new Date(timeString);
+      }
+      
+      const currentTime = new Date();
+      
+      if (isNaN(createdAt.getTime())) {
+        console.error('Invalid creation time, using default 5 minutes');
+        timeLeft = 300;
+      } else {
+        const elapsedMs = currentTime - createdAt;
+        const elapsedSeconds = Math.floor(elapsedMs / 1000);
+        timeLeft = 300 - elapsedSeconds;
+        
+        console.log('Date string - Elapsed seconds:', elapsedSeconds);
+        console.log('Date string - Time remaining:', timeLeft);
+      }
+    } catch (error) {
+      console.error('Error parsing creation time:', error);
+      timeLeft = 300;
+    }
+  } else {
+    console.log('No creation time found, using default 5 minutes');
+    timeLeft = 300;
+  }
+  
+  // If already expired, close modal immediately
+  if (timeLeft <= 0) {
+    console.log('Deposit already expired, closing modal');
+    closeDepositModal();
+    showExpiredMessage();
+    return;
+  }
+  
+  console.log('Starting countdown with', timeLeft, 'seconds remaining');
+  
+  // Update the countdown every second
+  const timer = setInterval(function() {
+    timeLeft--;
+    
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    
+    countdownElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    
+    // Add warning when less than 1 minute
+    if (timeLeft <= 60) {
+      countdownElement.style.color = '#dc2626';
+      countdownElement.style.fontWeight = 'bold';
+    }
+    
+    // When time is up, close modal and show expired message
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      console.log('Countdown finished, closing modal');
+      closeDepositModal();
+      showExpiredMessage();
+    }
+  }, 1000);
+}
+
+function showExpiredMessage() {
+  // Show expired message
+  const expiredAlert = document.createElement('div');
+  expiredAlert.className = 'alert alert-warning';
+  expiredAlert.innerHTML = '<strong>Wallet Address Expired:</strong> Your wallet address has expired. Please create a new deposit to get a fresh address.';
+  
+  // Insert at the top of the crypto deposit tab
+  const cryptoTab = document.getElementById('crypto-deposit');
+  if (cryptoTab) {
+    cryptoTab.insertBefore(expiredAlert, cryptoTab.firstChild);
+  }
+}
+
+// Tab switching functionality
+function showTab(tabId) {
+  // Hide all deposit tabs
+  document.querySelectorAll('#crypto-deposit, #local-deposit').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  
+  // Remove active class from all deposit tab buttons
+  document.querySelectorAll('.payment-method-tabs:first-child .tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Show selected tab
+  document.getElementById(tabId).classList.add('active');
+  
+  // Add active class to clicked button
+  event.target.classList.add('active');
+}
+
+function showWithdrawalTab(tabId) {
+  // Hide all withdrawal tabs
+  document.querySelectorAll('#crypto-withdrawal, #local-withdrawal').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  
+  // Remove active class from all withdrawal tab buttons
+  document.querySelectorAll('.payment-method-tabs:last-child .tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Show selected tab
+  document.getElementById(tabId).classList.add('active');
+  
+  // Add active class to clicked button
+  event.target.classList.add('active');
+}
+
+// NGN calculation functions
+function calculateLocalNGN() {
+  const amount = parseFloat(document.getElementById('local_amount_usdt').value) || 0;
+  const conversionRate = {{ conversion_rate }};
+  const ngnAmount = (amount * conversionRate).toFixed(2);
+  document.getElementById('local-ngn-amount').textContent = ngnAmount;
+}
+
+function calculateWithdrawalNGN() {
+  const amount = parseFloat(document.getElementById('local_withdrawal_amount').value) || 0;
+  const conversionRate = 1430; // ₦1430 = 1 USDT for withdrawals
+  const ngnAmount = (amount * conversionRate).toFixed(2);
+  document.getElementById('withdrawal-ngn-amount').textContent = ngnAmount;
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  calculateLocalNGN();
+  calculateWithdrawalNGN();
+});
+</script>
+
+<style>
+/* Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background-color: white;
+  margin: 5% auto;
+  padding: 0;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.25rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.deposit-info {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.info-row .label {
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.info-row .value {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.info-row .value.pending {
+  color: #f59e0b;
+}
+
+.wallet-section h4 {
+  margin: 0 0 1rem 0;
+  color: #1f2937;
+  font-size: 1rem;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+}
+
+/* Copy Button Styles */
+.wallet-address-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.wallet-address-container code {
+  flex: 1;
+  background: #f3f4f6;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  word-break: break-all;
+  border: 1px solid #e5e7eb;
+}
+
+.copy-btn {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.copy-btn:hover {
+  background: #4338ca;
+  transform: scale(1.05);
+}
+
+.copy-btn:active {
+  transform: scale(0.95);
+}
+
+.copy-btn svg {
+  pointer-events: none;
+}
+
+/* Scrollable local methods frame */
+.local-methods-frame {
+  max-height: 500px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #f8fafc;
+}
+
+.local-methods-frame::-webkit-scrollbar {
+  width: 8px;
+}
+
+.local-methods-frame::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.local-methods-frame::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.local-methods-frame::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Compact form styles */
+.compact-form .form-group {
+  margin-bottom: 0.75rem;
+}
+
+.compact-form label {
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.compact-form .form-control {
+  padding: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.compact-form .form-text {
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.compact-form .naira-amount {
+  font-size: 1rem;
+  padding: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.compact-form .checkbox-wrapper {
+  padding: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.compact-form .checkbox-wrapper label {
+  line-height: 1.3;
+}
+
+.compact-form .btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* Fixed height finance grid */
+.finance-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  max-height: 900px;
+  overflow: hidden;
+}
+
+.finance-grid .card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 900px;
+}
+
+.finance-grid .card h2 {
+  flex-shrink: 0;
+  margin-bottom: 1rem;
+}
+
+.finance-grid .table-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.finance-grid .table-wrap {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Fixed height scrollable tables */
+.table-card {
+  position: relative;
+}
+
+.table-wrap {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.data-table {
+  margin: 0;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.data-table thead {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.data-table th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #374151;
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.data-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.data-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Custom scrollbar */
+.table-wrap::-webkit-scrollbar {
+  width: 8px;
+}
+
+.table-wrap::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-paid {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-failed {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-approved {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Tab Styles */
+.payment-method-tabs {
+  display: flex;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: #6b7280;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  color: #4f46e5;
+}
+
+.tab-btn.active {
+  color: #4f46e5;
+  border-bottom-color: #4f46e5;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Local Payment Styles */
+.naira-amount {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #4f46e5;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.balance-info {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.balance-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.checkbox-wrapper {
+  background: #fef3c7;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 2px solid #f59e0b;
+  margin-bottom: 1rem;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+  margin-right: 0.5rem;
+  transform: scale(1.2);
+}
+
+.checkbox-wrapper label {
+  margin: 0;
+  line-height: 1.4;
+  color: #92400e;
+  cursor: pointer;
+}
+
+/* Alert Styles */
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.alert-info {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #3b82f6;
+}
+
+.alert-warning {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.form-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+/* Button Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-success {
+  background: #10b981;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #059669;
+}
+
+.btn-primary {
+  background: #4f46e5;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #4338ca;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .finance-grid {
+    grid-template-columns: 1fr;
+    max-height: none;
+    gap: 1rem;
+  }
+  
+  .finance-grid .card {
+    max-height: 400px;
+  }
+  
+  .modal-content {
+    width: 95%;
+    margin: 2% auto;
+  }
+  
+  .payment-method-tabs {
+    flex-direction: column;
+  }
+  
+  .tab-btn {
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    border-left: 3px solid transparent;
+  }
+  
+  .tab-btn.active {
+    border-left-color: #4f46e5;
+    border-bottom-color: #e5e7eb;
+  }
+  
+  .modal-footer {
+    flex-direction: column;
+  }
+  
+  .modal-footer .btn {
+    width: 100%;
+  }
+  
+  .table-wrap {
+    max-height: 300px;
+  }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,269 @@
+{% extends "crypto/base.html" %}
+{% load static %}
+
+{% block title %}Local Deposit — CopyBloom FX{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Local Deposit</h1>
+  <p class="muted">Fund your account using Paystack (₦{{ conversion_rate }} = 1 USDT)</p>
+
+  <div class="deposit-grid">
+    <div class="card">
+      <h2>Make a Deposit</h2>
+      
+      <div class="alert alert-warning">
+        <strong>⚠️ Important:</strong><br>
+        • Minimum deposit: $10 USDT<br>
+        • Funds are added to your locked balance<br>
+        • Conversion rate: ₦{{ conversion_rate }} = 1 USDT (Fixed)<br>
+        • Payment is processed via Paystack secure payment gateway
+      </div>
+
+      <form method="post" action="{% url 'crypto:local_deposit' %}">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="id_amount_usdt">Amount (USDT)</label>
+          <input type="number" 
+                 name="amount_usdt" 
+                 id="id_amount_usdt" 
+                 class="form-control" 
+                 min="10" 
+                 step="0.01" 
+                 placeholder="Enter amount in USDT"
+                 oninput="calculateNGN()">
+          <small class="form-text text-muted">Minimum: $10 USDT</small>
+        </div>
+
+        <div class="form-group">
+          <label>Equivalent Amount (NGN)</label>
+          <div class="naira-amount">₦<span id="ngn-amount">0.00</span></div>
+          <small class="form-text text-muted">Calculated at ₦{{ conversion_rate }} = 1 USDT</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+            <line x1="1" y1="10" x2="23" y2="10"></line>
+          </svg>
+          Pay with Paystack
+        </button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Recent Deposits</h2>
+      {% if recent_deposits %}
+        <div class="deposits-list">
+          {% for deposit in recent_deposits %}
+          <div class="deposit-item">
+            <div class="deposit-info">
+              <strong>${{ deposit.amount_usdt }}</strong>
+              <span class="deposit-date">{{ deposit.created_at|date:"M d, Y H:i" }}</span>
+            </div>
+            <span class="status status-{{ deposit.status }}">
+              {% if deposit.status == 'pending' %}
+                Pending Payment
+              {% elif deposit.status == 'paid' %}
+                Paid
+              {% elif deposit.status == 'confirmed' %}
+                Confirmed
+              {% elif deposit.status == 'failed' %}
+                Failed
+              {% else %}
+                {{ deposit.status|title }}
+              {% endif %}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="muted">No deposits yet. Make your first deposit above!</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="info-section">
+    <h3>How It Works</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h4>Enter Amount</h4>
+          <p>Enter the amount in USDT you want to deposit</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h4>Pay with Paystack</h4>
+          <p>Click "Pay with Paystack" to proceed to secure payment</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h4>Funds Added</h4>
+          <p>After successful payment, funds are added to your locked balance</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function calculateNGN() {
+  const amount = parseFloat(document.getElementById('id_amount_usdt').value) || 0;
+  const conversionRate = {{ conversion_rate }};
+  const ngnAmount = (amount * conversionRate).toFixed(2);
+  document.getElementById('ngn-amount').textContent = ngnAmount;
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  calculateNGN();
+});
+</script>
+
+<style>
+.deposit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+@media (max-width: 768px) {
+  .deposit-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.naira-amount {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4f46e5;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.deposits-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.deposit-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.deposit-item:last-child {
+  border-bottom: none;
+}
+
+.deposit-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.deposit-date {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-paid {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-confirmed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-failed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.info-section {
+  margin-top: 3rem;
+  padding: 2rem;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.steps {
+  margin-top: 1.5rem;
+}
+
+.step {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: flex-start;
+}
+
+.step-number {
+  width: 2rem;
+  height: 2rem;
+  background: #4f46e5;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.step-content h4 {
+  margin: 0 0 0.25rem 0;
+  color: #1f2937;
+}
+
+.step-content p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  background: #4f46e5;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn:hover {
+  background: #4338ca;
+}
+</style>
+{% endblock %}
