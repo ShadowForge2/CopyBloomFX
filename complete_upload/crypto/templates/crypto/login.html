@@ -1,0 +1,28 @@
+{% extends "crypto/base.html" %}
+{% load static %}
+
+{% block title %}Login — Copy Trade{% endblock %}
+
+{% block content %}
+<div class="container auth-container">
+  <div class="card auth-card">
+    <h1>Login</h1>
+    <form method="post" action="{% url 'crypto:login' %}">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="form-group">
+        <label for="id_username">Username</label>
+        <input type="text" name="username" id="id_username" required placeholder="Username" value="{{ form.username.value|default:'' }}">
+        {% if form.username.errors %}<span class="field-error">{{ form.username.errors.0 }}</span>{% endif %}
+      </div>
+      <div class="form-group">
+        <label for="id_password">Password</label>
+        <input type="password" name="password" id="id_password" required placeholder="Password">
+        {% if form.password.errors %}<span class="field-error">{{ form.password.errors.0 }}</span>{% endif %}
+      </div>
+      <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+    <p class="auth-footer">No account? <a href="{% url 'crypto:signup' %}">Sign up</a></p>
+  </div>
+</div>
+{% endblock %}

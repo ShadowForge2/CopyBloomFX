@@ -1,0 +1,90 @@
+{% extends "crypto/base.html" %}
+{% load static %}
+
+{% block title %}Dashboard — Copy Trade{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Dashboard</h1>
+
+  {% for d in pending_deposits %}
+  <div class="card card-pending">
+    <strong>Pending deposit:</strong> ${{ d.amount }} ({{ d.network }}) — expires {{ d.expires_at|date:"M j, Y" }}
+  </div>
+  {% endfor %}
+
+  <div class="card">
+    <h2>Balances</h2>
+    <div class="balance-row">
+      <div><span class="label">Locked</span><div class="value">${% if profile %}{{ profile.locked_balance|floatformat:2 }}{% else %}0.00{% endif %}</div></div>
+      <div><span class="label">Withdrawable</span><div class="value">${% if profile %}{{ profile.withdrawable_balance|floatformat:2 }}{% else %}0.00{% endif %}</div></div>
+      <div><span class="label">Total</span><div class="value">${% if profile %}{{ profile.total_balance|floatformat:2 }}{% else %}0.00{% endif %}</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Daily Profit</h2>
+    <div class="balance-row">
+      <div><span class="label">Today's Profit</span><div class="value">${{ todays_profit|floatformat:2 }}</div></div>
+      <div><span class="label">Potential Daily</span><div class="value">${{ todays_potential_profit|floatformat:2 }}</div></div>
+      <div><span class="label">Rate</span><div class="value">{% if rank %}{{ rank.daily_profit_pct }}%{% else %}0%{% endif %}</div></div>
+    </div>
+    <p class="muted">Daily profit calculated from locked balance at your rank rate.</p>
+  </div>
+
+  <div class="card">
+    <h2>Daily Sign-In Reward</h2>
+    <p>${{ daily_reward_amount }}/day → withdrawable once min withdrawal (${{ min_withdrawal }}) reached.</p>
+    {% if can_claim_daily %}
+    <form method="post" action="{% url 'crypto:daily_reward' %}" style="display:inline;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-success">Claim ${{ daily_reward_amount }}</button>
+    </form>
+    {% else %}
+    <button type="button" class="btn" disabled>Already claimed today</button>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Brain Box Rank Ladder</h2>
+    <div class="rank-ladder">
+      {% for r in ranks %}
+      <div class="rank-chip {% if r.is_current %}current{% endif %}" style="{% if r.is_current %}background:{{ r.color }};color:#fff;{% endif %}">
+        {% if r.is_current %}👑{% endif %} {{ r.name }} ${{ r.min_balance }}–${{ r.max_balance }} ×{{ r.copy_trades_limit }}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header-row">
+      <h2>Copy Trades</h2>
+      <form method="post" action="{% url 'crypto:copy_trade_simulate' %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Copy trade simulation</button>
+      </form>
+    </div>
+    <p class="muted">Live updates. Limit per rank enforced. Shows individual trade P&L (separate from daily yield).</p>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>Pair</th><th>Action</th><th>Amount</th><th>Profit</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for t in copy_trades %}
+          <tr>
+            <td>{{ t.pair }}</td>
+            <td><span class="action-{{ t.action }}">{{ t.action }}</span></td>
+            <td>${{ t.amount|floatformat:2 }}</td>
+            <td><span class="{% if t.profit >= 0 %}profit-positive{% else %}profit-negative{% endif %}">${{ t.profit|floatformat:2 }}</span></td>
+            <td>{{ t.status }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="empty">No copy trades yet. Use simulation.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

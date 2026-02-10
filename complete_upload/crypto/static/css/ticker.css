@@ -1,0 +1,137 @@
+/* Risk Warning Ticker Styles */
+.risk-ticker-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);
+    border-top: 2px solid #e94560;
+    box-shadow: 0 -2px 10px rgba(233, 69, 96, 0.3);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    height: 40px;
+    display: flex;
+    align-items: center;
+}
+
+.risk-ticker-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.risk-ticker-content {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    animation: scroll-left 60s linear infinite;
+    will-change: transform;
+}
+
+.risk-ticker-item {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 50px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #f5f5f5;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.risk-ticker-item .warning-icon {
+    color: #e94560;
+    margin-right: 8px;
+    font-size: 14px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Smooth scrolling animation */
+@keyframes scroll-left {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* Warning icon pulse animation */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .risk-ticker-container {
+        height: 35px;
+        font-size: 11px;
+    }
+    
+    .risk-ticker-item {
+        padding: 0 30px;
+        font-size: 11px;
+    }
+    
+    .risk-ticker-item .warning-icon {
+        font-size: 12px;
+        margin-right: 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .risk-ticker-container {
+        height: 30px;
+    }
+    
+    .risk-ticker-item {
+        padding: 0 20px;
+        font-size: 10px;
+    }
+    
+    .risk-ticker-item .warning-icon {
+        font-size: 11px;
+        margin-right: 5px;
+    }
+}
+
+/* Ensure smooth performance */
+.risk-ticker-content {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    -ms-backface-visibility: hidden;
+}
+
+/* Prevent text selection during scroll */
+.risk-ticker-container {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Add some spacing from bottom content */
+body {
+    padding-bottom: 40px;
+}
+
+@media (max-width: 768px) {
+    body {
+        padding-bottom: 35px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding-bottom: 30px;
+    }
+}

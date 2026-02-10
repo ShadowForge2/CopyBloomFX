@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}CopyBloom FX{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  {% if user.is_authenticated %}
+  <header>
+    <div class="container header-inner">
+      <div class="nav-row">
+        <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu">☰</button>
+        <a href="{% url 'crypto:dashboard' %}" class="brand">CopyBloom FX</a>
+        <nav class="nav-menu" id="nav-menu">
+          <a href="{% url 'crypto:dashboard' %}">Dashboard</a>
+          <a href="{% url 'crypto:finance' %}">Finance</a>
+          <a href="{% url 'crypto:profile' %}">Profile</a>
+          <a href="{% url 'crypto:referral' %}">Referral / Promos</a>
+          <a href="{% url 'crypto:contact' %}">Contact Us</a>
+          {% if user.is_staff or user.role == 'admin' %}
+          <a href="{% url 'crypto:admin_dashboard' %}">Admin</a>
+          <a href="{% url 'crypto:admin_deposits' %}">Deposits</a>
+          <a href="{% url 'crypto:admin_withdrawals' %}">Withdrawals</a>
+          <a href="{% url 'crypto:admin_promos' %}">Promos</a>
+          <a href="{% url 'crypto:admin_users' %}">Users</a>
+          {% endif %}
+        </nav>
+      </div>
+      <div class="user-row">
+        <span class="username">{{ user.username }}</span>
+        <a href="{% url 'crypto:logout' %}" class="btn btn-danger">Logout</a>
+      </div>
+    </div>
+  </header>
+  {% endif %}
+  <main>
+    {% if messages %}
+    <div class="container">
+      {% for m in messages %}
+      <div class="alert alert-{{ m.tags }}">{{ m }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  
+  <!-- Risk Warning Ticker -->
+  <link rel="stylesheet" href="{% static 'css/ticker.css' %}">
+  <script src="{% static 'js/ticker.js' %}"></script>
+  
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

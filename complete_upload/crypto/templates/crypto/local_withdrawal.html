@@ -1,0 +1,432 @@
+{% extends "crypto/base.html" %}
+{% load static %}
+
+{% block title %}Local Withdrawal — CopyBloom FX{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Local Withdrawal</h1>
+  <p class="muted">Withdraw funds to your Nigerian bank account (₦{{ conversion_rate }} = 1 USDT)</p>
+
+  <div class="withdrawal-grid">
+    <div class="card">
+      <h2>Request Withdrawal</h2>
+      
+      <div class="alert alert-warning">
+        <strong>⚠️ IMPORTANT WARNING:</strong><br>
+        You are fully responsible for providing correct bank details.<br>
+        Withdrawals sent to incorrect accounts are IRREVERSIBLE.<br>
+        The platform bears NO LIABILITY for wrong details.<br>
+        <strong>Minimum withdrawal: $10 USDT</strong>
+      </div>
+
+      <div class="balance-info">
+        <div class="balance-item">
+          <span>Available Balance:</span>
+          <strong>${{ available_balance|floatformat:2 }}</strong>
+        </div>
+        <div class="balance-item">
+          <span>Conversion Rate:</span>
+          <strong>₦{{ conversion_rate }} = 1 USDT</strong>
+        </div>
+      </div>
+
+      <form method="post" action="{% url 'crypto:local_withdrawal' %}">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="id_amount_usdt">Amount (USDT)</label>
+          <input type="number" 
+                 name="amount_usdt" 
+                 id="id_amount_usdt" 
+                 class="form-control" 
+                 min="10" 
+                 max="{{ available_balance }}"
+                 step="0.01" 
+                 placeholder="Enter amount in USDT"
+                 oninput="calculateNGN()">
+          <small class="form-text text-muted">Minimum: $10 USDT | Maximum: ${{ available_balance|floatformat:2 }}</small>
+        </div>
+
+        <div class="form-group">
+          <label>Equivalent Amount (NGN)</label>
+          <div class="naira-amount">₦<span id="ngn-amount">0.00</span></div>
+          <small class="form-text text-muted">Calculated at ₦{{ conversion_rate }} = 1 USDT</small>
+        </div>
+
+        <div class="form-group">
+          <label for="id_bank_name">Bank Name</label>
+          <input type="text" 
+                 name="bank_name" 
+                 id="id_bank_name" 
+                 class="form-control" 
+                 placeholder="e.g., Access Bank, GTBank, First Bank"
+                 required>
+        </div>
+
+        <div class="form-group">
+          <label for="id_account_number">Account Number</label>
+          <input type="text" 
+                 name="account_number" 
+                 id="id_account_number" 
+                 class="form-control" 
+                 placeholder="Enter 10-digit account number"
+                 maxlength="10"
+                 pattern="[0-9]{10}"
+                 required>
+          <small class="form-text text-muted">Must be exactly 10 digits</small>
+        </div>
+
+        <div class="form-group">
+          <label for="id_account_holder_name">Account Holder Name</label>
+          <input type="text" 
+                 name="account_holder_name" 
+                 id="id_account_holder_name" 
+                 class="form-control" 
+                 placeholder="Name as it appears on bank account"
+                 required>
+        </div>
+
+        <div class="form-group">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" name="confirm_details" id="id_confirm_details" required>
+            <label for="id_confirm_details">
+              <strong>I confirm that all bank details are correct.</strong><br>
+              I understand that withdrawals sent to wrong accounts are irreversible.<br>
+              I accept full responsibility for the accuracy of the provided information.
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"></path>
+          </svg>
+          Submit Withdrawal Request
+        </button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Recent Withdrawals</h2>
+      {% if recent_withdrawals %}
+        <div class="withdrawals-list">
+          {% for withdrawal in recent_withdrawals %}
+          <div class="withdrawal-item">
+            <div class="withdrawal-info">
+              <strong>${{ withdrawal.amount_usdt }}</strong>
+              <span class="withdrawal-date">{{ withdrawal.created_at|date:"M d, Y H:i" }}</span>
+              <div class="withdrawal-bank">
+                {{ withdrawal.bank_name }} - ****{{ withdrawal.account_number|slice:"-4:" }}
+              </div>
+            </div>
+            <span class="status status-{{ withdrawal.status }}">
+              {% if withdrawal.status == 'pending_admin_approval' %}
+                Pending Approval
+              {% elif withdrawal.status == 'approved' %}
+                Approved
+              {% elif withdrawal.status == 'rejected' %}
+                Rejected
+              {% elif withdrawal.status == 'completed' %}
+                Completed
+              {% elif withdrawal.status == 'failed' %}
+                Failed
+              {% elif withdrawal.status == 'refunded' %}
+                Refunded
+              {% else %}
+                {{ withdrawal.status|title }}
+              {% endif %}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="muted">No withdrawal requests yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="info-section">
+    <h3>Withdrawal Process</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h4>Submit Request</h4>
+          <p>Fill in your withdrawal details and confirm bank information</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h4>Admin Approval</h4>
+          <p>Your request will be reviewed by admin (usually within 24 hours)</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h4>Paystack Transfer</h4>
+          <p>Once approved, funds are sent via Paystack to your bank account</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-info">
+      <h4>Processing Timeline</h4>
+      <ul>
+        <li><strong>Admin Review:</strong> 1-24 hours</li>
+        <li><strong>Paystack Transfer:</strong> Instant after approval</li>
+        <li><strong>Bank Processing:</strong> 0-2 hours (depends on bank)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+function calculateNGN() {
+  const amount = parseFloat(document.getElementById('id_amount_usdt').value) || 0;
+  const conversionRate = {{ conversion_rate }};
+  const ngnAmount = (amount * conversionRate).toFixed(2);
+  document.getElementById('ngn-amount').textContent = ngnAmount;
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  calculateNGN();
+});
+</script>
+
+<style>
+.withdrawal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+@media (max-width: 768px) {
+  .withdrawal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.balance-info {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.balance-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.balance-item:first-child {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.naira-amount {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4f46e5;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.checkbox-wrapper {
+  background: #fef3c7;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 2px solid #f59e0b;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+  margin-right: 0.5rem;
+  transform: scale(1.2);
+}
+
+.checkbox-wrapper label {
+  margin: 0;
+  line-height: 1.4;
+  color: #92400e;
+}
+
+.withdrawals-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.withdrawal-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.withdrawal-item:last-child {
+  border-bottom: none;
+}
+
+.withdrawal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.withdrawal-date {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.withdrawal-bank {
+  font-size: 0.75rem;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status-pending_admin_approval {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-approved {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-failed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-refunded {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.info-section {
+  margin-top: 3rem;
+  padding: 2rem;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.steps {
+  margin-top: 1.5rem;
+}
+
+.step {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: flex-start;
+}
+
+.step-number {
+  width: 2rem;
+  height: 2rem;
+  background: #4f46e5;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.step-content h4 {
+  margin: 0 0 0.25rem 0;
+  color: #1f2937;
+}
+
+.step-content p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.timeline-info {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 8px;
+  border-left: 4px solid #4f46e5;
+}
+
+.timeline-info h4 {
+  margin: 0 0 1rem 0;
+  color: #1f2937;
+}
+
+.timeline-info ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.timeline-info li {
+  margin-bottom: 0.5rem;
+  color: #6b7280;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  background: #4f46e5;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn:hover {
+  background: #4338ca;
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.alert-warning {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+</style>
+{% endblock %}

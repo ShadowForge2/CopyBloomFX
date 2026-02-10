@@ -1,0 +1,66 @@
+{% extends "crypto/admin/base_admin.html" %}
+{% load static %}
+
+{% block title %}Deposits — Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Deposit management</h1>
+
+  <div class="filter-row">
+    <span>Status:</span>
+    <a href="?status=pending">Pending</a> |
+    <a href="?status=approved">Approved</a> |
+    <a href="?status=rejected">Rejected</a> |
+    <a href="?">All</a>
+  </div>
+
+  <div class="card table-card">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Amount</th>
+            <th>Network</th>
+            <th>Status</th>
+            <th>Flag/Ban</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in deposits %}
+          <tr class="{% if d.user.is_banned %}row-banned{% elif d.user.is_flagged %}row-flagged{% endif %}">
+            <td>{{ d.id }}</td>
+            <td>{{ d.user.username }}{% if d.user.is_flagged %} ⚠{% endif %}{% if d.user.is_banned %} 🚫{% endif %}</td>
+            <td>${{ d.amount|floatformat:2 }}</td>
+            <td>{{ d.network }}</td>
+            <td><span class="status-{{ d.status }}">{{ d.status }}</span></td>
+            <td>{% if d.user.is_flagged %}Flagged{% endif %} {% if d.user.is_banned %}Banned{% endif %}</td>
+            <td>{{ d.created_at|date:"M j, H:i" }}</td>
+            <td>
+              {% if d.status == 'pending' and d.type == 'crypto' %}
+              <form method="post" action="{% url 'crypto:admin_deposit_approve' d.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-success">Approve</button>
+              </form>
+              <form method="post" action="{% url 'crypto:admin_deposit_reject' d.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+              </form>
+              {% elif d.type == 'paystack' %}
+              <span class="badge badge-info">Auto-processed</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="empty">No deposits.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

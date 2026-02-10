@@ -1,0 +1,38 @@
+# PYTHONANYWHERE DEPLOYMENT GUIDE
+
+## FILES TO UPLOAD TO PYTHONANYWHERE:
+
+### 1. Main Project Files:
+- crypto/ (entire folder)
+- crypto_platform/ (entire folder)
+- manage.py
+- requirements.txt
+
+### 2. Create requirements.txt for PythonAnywhere:
+Django==4.2.7
+python-decouple==3.8
+Pillow==10.1.0
+mysqlclient==2.2.0
+django-cors-headers==4.3.1
+
+### 3. Settings Update Needed:
+Update crypto_platform/settings.py for PythonAnywhere:
+- Update ALLOWED_HOSTS
+- Update database settings
+- Update static files
+
+## DEPLOYMENT STEPS:
+
+1. Login to PythonAnywhere
+2. Go to Files tab
+3. Upload your Django files
+4. Go to Consoles → Bash
+5. Install dependencies
+6. Set up database
+7. Create web app
+8. Configure WSGI
+9. Run migrations
+10. Test your site
+
+## YOUR PLATFORM URL:
+https://yourusername.pythonanywhere.com/

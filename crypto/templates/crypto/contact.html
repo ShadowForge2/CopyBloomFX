@@ -1,0 +1,162 @@
+{% extends "crypto/base.html" %}
+{% load static %}
+
+{% block title %}Contact Us — CopyBloom FX{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Contact Us</h1>
+  
+  <div class="contact-grid">
+    <div class="contact-card">
+      <div class="contact-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"></path>
+        </svg>
+      </div>
+      <h3>Join Our Channel</h3>
+      <p>Get the latest updates and announcements</p>
+      <a href="https://t.me/+rQN4I7-fcndkMTQ8" target="_blank" class="btn btn-primary">Join Channel</a>
+    </div>
+
+    <div class="contact-card">
+      <div class="contact-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 00-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 010 7.75"></path>
+        </svg>
+      </div>
+      <h3>Join Our Group</h3>
+      <p>Connect with other traders and share experiences</p>
+      <a href="https://t.me/+J4OWKimg7co3ZGM8" target="_blank" class="btn btn-primary">Join Group</a>
+    </div>
+
+    <div class="contact-card">
+      <div class="contact-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path>
+        </svg>
+      </div>
+      <h3>Online Support</h3>
+      <p>Get instant help from our support team</p>
+      <a href="https://t.me/Cp_onlinesupportservice" target="_blank" class="btn btn-primary">Chat Support</a>
+    </div>
+  </div>
+
+  <div class="contact-info">
+    <h2>Need Help?</h2>
+    <p>We're here to assist you with any questions or issues you may have. Choose the most convenient way to reach us:</p>
+    
+    <div class="info-list">
+      <div class="info-item">
+        <strong>📢 Channel:</strong> Receive important updates and news
+      </div>
+      <div class="info-item">
+        <strong>👥 Group:</strong> Join discussions with other traders
+      </div>
+      <div class="info-item">
+        <strong>💬 Support:</strong> Get immediate assistance from our team
+      </div>
+    </div>
+
+    <div class="support-hours">
+      <h3>Support Hours</h3>
+      <p>Monday - Friday: 9:00 AM - 6:00 PM UTC</p>
+      <p>Saturday - Sunday: 10:00 AM - 4:00 PM UTC</p>
+    </div>
+  </div>
+</div>
+
+<style>
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.contact-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.contact-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.contact-icon {
+  color: #4f46e5;
+  margin-bottom: 1rem;
+}
+
+.contact-card h3 {
+  margin: 1rem 0 0.5rem 0;
+  color: #1f2937;
+}
+
+.contact-card p {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.contact-info {
+  background: #f9fafb;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-top: 2rem;
+}
+
+.info-list {
+  margin: 1.5rem 0;
+}
+
+.info-item {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.support-hours {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+  border-left: 4px solid #4f46e5;
+}
+
+.support-hours h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1f2937;
+}
+
+.support-hours p {
+  margin: 0.25rem 0;
+  color: #6b7280;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #4f46e5;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background 0.3s ease;
+}
+
+.btn:hover {
+  background: #4338ca;
+}
+</style>
+{% endblock %}

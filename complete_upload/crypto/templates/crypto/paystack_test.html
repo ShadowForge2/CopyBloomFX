@@ -1,0 +1,118 @@
+{% extends 'crypto/base.html' %}
+{% block title %}Paystack Test{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card">
+    <h2>Paystack Configuration Test</h2>
+    
+    <div id="test-results">
+      <button onclick="testPaystack()" class="btn btn-primary">Test Paystack Configuration</button>
+    </div>
+    
+    <div id="results" style="display: none; margin-top: 2rem;">
+      <h3>Test Results:</h3>
+      <div id="config-status"></div>
+      <div id="api-test"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function testPaystack() {
+  const button = document.querySelector('button');
+  const results = document.getElementById('results');
+  const configStatus = document.getElementById('config-status');
+  const apiTest = document.getElementById('api-test');
+  
+  button.disabled = true;
+  button.textContent = 'Testing...';
+  
+  fetch('/test-paystack/')
+    .then(response => response.json())
+    .then(data => {
+      results.style.display = 'block';
+      
+      // Configuration status
+      configStatus.innerHTML = `
+        <h4>Configuration Status:</h4>
+        <div class="alert ${data.config_status.secret_key_configured ? 'alert-success' : 'alert-warning'}">
+          <strong>Secret Key:</strong> ${data.config_status.secret_key_prefix}... 
+          ${data.config_status.secret_key_configured ? '✅ Configured' : '❌ Not configured'}
+        </div>
+        <div class="alert ${data.config_status.public_key_configured ? 'alert-success' : 'alert-warning'}">
+          <strong>Public Key:</strong> ${data.config_status.public_key_prefix}... 
+          ${data.config_status.public_key_configured ? '✅ Configured' : '❌ Not configured'}
+        </div>
+      `;
+      
+      // API test results
+      if (data.is_working) {
+        apiTest.innerHTML = `
+          <h4>API Test:</h4>
+          <div class="alert alert-success">
+            <strong>✅ Paystack is working!</strong><br>
+            ${data.message}
+          </div>
+          <div class="alert alert-info">
+            <strong>Test Reference:</strong> ${data.test_result.data.reference}<br>
+            <strong>Authorization URL:</strong> <a href="${data.test_result.data.authorization_url}" target="_blank">${data.test_result.data.authorization_url}</a>
+          </div>
+        `;
+      } else {
+        apiTest.innerHTML = `
+          <h4>API Test:</h4>
+          <div class="alert alert-danger">
+            <strong>❌ Paystack configuration needs attention</strong><br>
+            ${data.test_result.message || 'Unknown error'}
+          </div>
+        `;
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      apiTest.innerHTML = `
+        <div class="alert alert-danger">
+          <strong>Error testing Paystack:</strong> ${error.message}
+        </div>
+      `;
+    })
+    .finally(() => {
+      button.disabled = false;
+      button.textContent = 'Test Paystack Configuration';
+    });
+}
+</script>
+
+<style>
+.alert {
+  padding: 1rem;
+  margin: 0.5rem 0;
+  border-radius: 4px;
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.alert-warning {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.alert-danger {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.alert-info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+</style>
+{% endblock %}
