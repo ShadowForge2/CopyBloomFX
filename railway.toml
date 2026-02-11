@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "python manage.py runserver 0.0.0.0:$PORT"
+startCommand = "python manage.py runserver 0.0.0.0:$PORT --settings=crypto_platform.railway_settings"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
 healthcheckPath = "/"
@@ -11,7 +11,7 @@ healthcheckInterval = 30
 
 [env]
 DJANGO_SETTINGS_MODULE = "crypto_platform.railway_settings"
-DEBUG = "False"
+DEBUG = "True"
 PYTHON_VERSION = "3.9.0"
 
 [[services]]
