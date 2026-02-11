@@ -3,7 +3,7 @@ services:
     name: crypto-platform
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput --settings=crypto_platform.render_settings
     startCommand: gunicorn crypto_platform.wsgi:application
     envVars:
       - key: DJANGO_SETTINGS_MODULE
