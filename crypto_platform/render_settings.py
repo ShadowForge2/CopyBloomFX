@@ -8,9 +8,17 @@ ALLOWED_HOSTS = ['*']  # Render will set the correct hostname
 SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 
 # DATABASE - Render PostgreSQL
-DATABASES = {
-    'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
-}
+try:
+    DATABASES = {
+        'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
+    }
+except:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # STATIC FILES
 STATIC_URL = '/static/'
