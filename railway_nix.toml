@@ -10,10 +10,3 @@ DJANGO_SETTINGS_MODULE = "crypto_platform.railway_settings"
 DEBUG = "False"
 PYTHON_VERSION = "3.9.0"
 PORT = "8000"
-
-[[services]]
-name = "crypto-platform"
-
-[services.variables]
-PAYSTACK_SECRET_KEY = ""
-PAYSTACK_PUBLIC_KEY = ""
