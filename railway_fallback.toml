@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "bash start.sh"
+startCommand = "python manage.py runserver 0.0.0.0:$PORT"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
 healthcheckPath = "/"
@@ -13,10 +13,3 @@ healthcheckInterval = 30
 DJANGO_SETTINGS_MODULE = "crypto_platform.railway_settings"
 DEBUG = "False"
 PYTHON_VERSION = "3.9.0"
-
-[[services]]
-name = "crypto-platform"
-
-[services.variables]
-PAYSTACK_SECRET_KEY = ""
-PAYSTACK_PUBLIC_KEY = ""
