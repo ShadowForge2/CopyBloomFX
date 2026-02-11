@@ -6,12 +6,12 @@ startCommand = "python manage.py runserver 0.0.0.0:$PORT --settings=crypto_platf
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
 healthcheckPath = "/"
-healthcheckTimeout = 100
-healthcheckInterval = 30
+healthcheckTimeout = 30
+healthcheckInterval = 60
 
 [env]
 DJANGO_SETTINGS_MODULE = "crypto_platform.railway_settings"
-DEBUG = "True"
+DEBUG = "False"
 PYTHON_VERSION = "3.9.0"
 
 [[services]]
