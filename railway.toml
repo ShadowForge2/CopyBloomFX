@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "python3 manage.py runserver 0.0.0.0:$PORT --settings=crypto_platform.railway_settings"
+startCommand = "/usr/local/bin/python manage.py runserver 0.0.0.0:$PORT --settings=crypto_platform.railway_settings"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
 
