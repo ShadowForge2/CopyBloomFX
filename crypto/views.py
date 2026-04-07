@@ -365,7 +365,24 @@ def admin_required(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated or not (request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'):
             messages.error(request, 'You are not authorized to access this page.')
-            return redirect('crypto:login')
+            return redirect('crypto:admin_login')
+        
+        # Check admin session timeout (1 minute)
+        admin_last_activity = request.session.get('admin_last_activity')
+        current_time = timezone.now().timestamp()
+        
+        if admin_last_activity:
+            session_age = current_time - admin_last_activity
+            if session_age > 60:  # 60 seconds = 1 minute
+                # Clear admin session and force re-authentication
+                del request.session['admin_last_activity']
+                messages.warning(request, 'Admin session expired. Please log in again.')
+                return redirect('crypto:admin_login')
+        
+        # Update last activity time
+        request.session['admin_last_activity'] = current_time
+        request.session.modified = True
+        
         return view_func(request, *args, **kwargs)
     return wrapper
 
@@ -543,6 +560,35 @@ def get_concurrent_copy_trades(user):
 # =============================================================================
 # Auth
 # =============================================================================
+
+@require_http_methods(['GET', 'POST'])
+def admin_login_view(request):
+    """Dedicated admin login page"""
+    if request.user.is_authenticated and (request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'):
+        return redirect('crypto:admin_dashboard')
+    
+    form = LoginForm(request, data=request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        user = form.get_user()
+        if user.is_banned:
+            messages.error(request, 'Account banned.')
+            return redirect('crypto:admin_login')
+        
+        # Check if user is admin
+        if not (user.is_superuser or getattr(user, 'role', '') == 'admin'):
+            messages.error(request, 'You are not authorized to access the admin panel.')
+            return redirect('crypto:admin_login')
+        
+        ip = get_client_ip(request)
+        user.last_login_ip = ip
+        user.save(update_fields=['last_login_ip'])
+        
+        login(request, user)
+        messages.success(request, 'Logged in to admin panel.')
+        next_url = request.GET.get('next') or 'crypto:admin_dashboard'
+        return redirect(next_url)
+    
+    return render(request, 'crypto/admin_login.html', {'form': form})
 
 @require_http_methods(['GET', 'POST'])
 def login_view(request):
@@ -1573,7 +1619,6 @@ def referral_view(request):
 # =============================================================================
 
 # --- Dashboard ---
-@login_required(login_url='crypto:login')
 @admin_required
 def admin_dashboard_view(request):
     from crypto.models import LocalDeposit, LocalWithdrawal
@@ -1615,7 +1660,6 @@ def admin_dashboard_view(request):
     return render(request, 'crypto/admin/dashboard.html', ctx)
 
 # --- Deposits ---
-@login_required(login_url='crypto:login')
 @admin_required
 def admin_deposits_view(request):
     status = request.GET.get('status')
@@ -1683,7 +1727,6 @@ def admin_deposits_view(request):
     
     return render(request, 'crypto/admin/deposits.html', {'deposits': all_deposits})
 
-@login_required(login_url='crypto:login')
 @admin_required
 @require_POST
 def admin_deposit_approve_view(request, pk):
@@ -1802,7 +1845,6 @@ def admin_deposit_reject_view(request, pk):
     return redirect('crypto:admin_deposits')
 
 # --- Withdrawals ---
-@login_required(login_url='crypto:login')
 @admin_required
 def admin_withdrawals_view(request):
     status = request.GET.get('status')
@@ -1811,7 +1853,6 @@ def admin_withdrawals_view(request):
         qs = qs.filter(status=status)
     return render(request, 'crypto/admin/withdrawals.html', {'withdrawals': qs})
 
-@login_required(login_url='crypto:login')
 @admin_required
 @require_POST
 def admin_withdrawal_approve_view(request, pk):
@@ -1828,7 +1869,6 @@ def admin_withdrawal_approve_view(request, pk):
     messages.success(request, f"Withdrawal {w.amount} approved.")
     return redirect('crypto:admin_withdrawals')
 
-@login_required(login_url='crypto:login')
 @admin_required
 @require_POST
 def admin_withdrawal_reject_view(request, pk):
@@ -1850,7 +1890,6 @@ def admin_withdrawal_reject_view(request, pk):
     return redirect('crypto:admin_withdrawals')
 
 # --- Local Withdrawals ---
-@login_required(login_url='crypto:login')
 @admin_required
 def admin_local_withdrawals_view(request):
     """Admin view to manage local withdrawal requests"""
@@ -1861,7 +1900,6 @@ def admin_local_withdrawals_view(request):
         qs = qs.filter(status=status)
     return render(request, 'crypto/admin/local_withdrawals.html', {'withdrawals': qs})
 
-@login_required(login_url='crypto:login')
 @admin_required
 @require_POST
 def admin_local_withdrawal_approve_view(request, pk):
@@ -1918,7 +1956,6 @@ def admin_local_withdrawal_approve_view(request, pk):
     
     return redirect('crypto:admin_local_withdrawals')
 
-@login_required(login_url='crypto:login')
 @admin_required
 @require_POST
 def admin_local_withdrawal_reject_view(request, pk):
@@ -1942,7 +1979,6 @@ def admin_local_withdrawal_reject_view(request, pk):
     messages.success(request, f"Local withdrawal of ${w.amount_usdt} rejected and refunded.")
     return redirect('crypto:admin_local_withdrawals')
 
-@login_required(login_url='crypto:login')
 @admin_required
 @require_POST
 def admin_local_withdrawal_complete_view(request, pk):
@@ -1962,7 +1998,6 @@ def admin_local_withdrawal_complete_view(request, pk):
     return redirect('crypto:admin_local_withdrawals')
 
 # --- Users ---
-@login_required(login_url='crypto:login')
 @admin_required
 def admin_users_view(request):
     flt = request.GET.get('filter')
@@ -1973,7 +2008,6 @@ def admin_users_view(request):
         qs = qs.filter(is_banned=True)
     return render(request, 'crypto/admin/users.html', {'users': qs})
 
-@login_required(login_url='crypto:login')
 @admin_required
 @require_POST
 def admin_user_flag_view(request, pk):
@@ -1986,7 +2020,6 @@ def admin_user_flag_view(request, pk):
     messages.success(request, "User flagged.")
     return redirect('crypto:admin_users')
 
-@login_required(login_url='crypto:login')
 @admin_required
 @require_POST
 def admin_user_unflag_view(request, pk):
@@ -1996,7 +2029,6 @@ def admin_user_unflag_view(request, pk):
     messages.success(request, "User unflagged.")
     return redirect('crypto:admin_users')
 
-@login_required(login_url='crypto:login')
 @admin_required
 @require_POST
 def admin_user_ban_view(request, pk):
@@ -2010,7 +2042,6 @@ def admin_user_ban_view(request, pk):
     messages.success(request, "User banned.")
     return redirect('crypto:admin_users')
 
-@login_required(login_url='crypto:login')
 @admin_required
 @require_POST
 def admin_user_unban_view(request, pk):
@@ -2022,7 +2053,6 @@ def admin_user_unban_view(request, pk):
     return redirect('crypto:admin_users')
 
 # --- Promo codes ---
-@login_required(login_url='crypto:login')
 @admin_required
 def admin_promos_view(request):
     promos = PromoCode.objects.order_by('-created_at')

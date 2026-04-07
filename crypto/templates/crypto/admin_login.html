@@ -1,0 +1,194 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login — CopyBloomFX</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .admin-login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+        }
+        
+        .admin-login-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .admin-login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .admin-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .admin-logo {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 1rem;
+            border-radius: 50%;
+        }
+        
+        .admin-title {
+            color: #333;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .admin-subtitle {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+        
+        .security-badge {
+            display: inline-block;
+            background: #dc3545;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+        
+        .form-floating-label {
+            color: #555;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .admin-login-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .back-to-user {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        
+        .back-to-user a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .back-to-user a:hover {
+            text-decoration: underline;
+        }
+        
+        .alert {
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        input[type="text"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-login-container">
+        <div class="admin-login-card">
+            <div class="admin-header">
+                <img src="{% static 'images/CopBloomFX_logo.png' %}" alt="CopyBloomFX" class="admin-logo">
+                <h1 class="admin-title">Admin Portal</h1>
+                <p class="admin-subtitle">Secure Administrator Access</p>
+                <div class="security-badge">
+                    🔒 Restricted Access
+                </div>
+            </div>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-floating-label">
+                    Username / Email
+                </div>
+                {{ form.username }}
+                
+                <div class="form-floating-label" style="margin-top: 1rem;">
+                    Password
+                </div>
+                {{ form.password }}
+                
+                <button type="submit" class="admin-login-btn">
+                    Sign In to Admin Panel
+                </button>
+            </form>
+            
+            <div class="back-to-user">
+                <a href="{% url 'crypto:login' %}">← Back to User Login</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Prevent regular users from accessing admin login
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add additional security measures if needed
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    // Add any client-side validation here
+                    console.log('Admin login attempt');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
