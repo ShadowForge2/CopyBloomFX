@@ -13,24 +13,58 @@
     <div class="container header-inner">
       <div class="nav-row">
         <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu">☰</button>
-        <a href="{% url 'crypto:dashboard' %}" class="brand">CopyBloom FX</a>
+        <a href="{% url 'crypto:dashboard' %}" class="brand">
+          <div class="logo-container">
+            <img src="{% static 'images/CopBloomFX_logo.png' %}" alt="CopBloom FX Logo" class="logo-image">
+          </div>
+        </a>
         <nav class="nav-menu" id="nav-menu">
-          <a href="{% url 'crypto:dashboard' %}">Dashboard</a>
-          <a href="{% url 'crypto:finance' %}">Finance</a>
-          <a href="{% url 'crypto:profile' %}">Profile</a>
-          <a href="{% url 'crypto:referral' %}">Referral / Promos</a>
-          <a href="{% url 'crypto:contact' %}">Contact Us</a>
+          <a href="{% url 'crypto:dashboard' %}" class="nav-item">
+            <img src="{% static 'images/nav/dashboard.png' %}" alt="Dashboard" class="nav-icon">
+            <span>Dashboard</span>
+          </a>
+          <a href="{% url 'crypto:finance' %}" class="nav-item">
+            <img src="{% static 'images/nav/finance.png' %}" alt="Finance" class="nav-icon">
+            <span>Finance</span>
+          </a>
+          <a href="{% url 'crypto:profile' %}" class="nav-item">
+            <img src="{% static 'images/nav/profile.png' %}" alt="Profile" class="nav-icon">
+            <span>Profile</span>
+          </a>
+          <a href="{% url 'crypto:referral' %}" class="nav-item">
+            <img src="{% static 'images/nav/referral.png' %}" alt="Referral / Promos" class="nav-icon">
+            <span>Referral / Promos</span>
+          </a>
+          <a href="{% url 'crypto:contact' %}" class="nav-item">
+            <img src="{% static 'images/nav/contact.png' %}" alt="Contact Us" class="nav-icon">
+            <span>Contact Us</span>
+          </a>
           {% if user.is_staff or user.role == 'admin' %}
-          <a href="{% url 'crypto:admin_dashboard' %}">Admin</a>
-          <a href="{% url 'crypto:admin_deposits' %}">Deposits</a>
-          <a href="{% url 'crypto:admin_withdrawals' %}">Withdrawals</a>
-          <a href="{% url 'crypto:admin_promos' %}">Promos</a>
-          <a href="{% url 'crypto:admin_users' %}">Users</a>
+          <a href="{% url 'crypto:admin_dashboard' %}" class="nav-item">
+            <img src="{% static 'images/nav/admin.png' %}" alt="Admin" class="nav-icon">
+            <span>Admin</span>
+          </a>
+          <a href="{% url 'crypto:admin_deposits' %}" class="nav-item">
+            <img src="{% static 'images/nav/deposits.png' %}" alt="Deposits" class="nav-icon">
+            <span>Deposits</span>
+          </a>
+          <a href="{% url 'crypto:admin_withdrawals' %}" class="nav-item">
+            <img src="{% static 'images/nav/withdrawals.png' %}" alt="Withdrawals" class="nav-icon">
+            <span>Withdrawals</span>
+          </a>
+          <a href="{% url 'crypto:admin_promos' %}" class="nav-item">
+            <img src="{% static 'images/nav/promos.png' %}" alt="Promos" class="nav-icon">
+            <span>Promos</span>
+          </a>
+          <a href="{% url 'crypto:admin_users' %}" class="nav-item">
+            <img src="{% static 'images/nav/users.png' %}" alt="Users" class="nav-icon">
+            <span>Users</span>
+          </a>
           {% endif %}
         </nav>
       </div>
       <div class="user-row">
-        <span class="username">{{ user.username }}</span>
+        <span class="username" style="font-family: cursive;">{{ user.username }}</span>
         <a href="{% url 'crypto:logout' %}" class="btn btn-danger">Logout</a>
       </div>
     </div>

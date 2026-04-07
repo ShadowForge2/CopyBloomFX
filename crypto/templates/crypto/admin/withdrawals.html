@@ -38,7 +38,18 @@
             <td>{{ w.user.username }}</td>
             <td>${{ w.amount|floatformat:2 }}</td>
             <td>{{ w.network }}</td>
-            <td class="truncate" title="{{ w.wallet_address }}">{{ w.wallet_address|default:'—'|truncatechars:20 }}</td>
+            <td class="truncate" title="{{ w.wallet_address }}">
+              <span id="withdrawal-{{ w.id }}-wallet">{{ w.wallet_address|default:'—'|truncatechars:20 }}</span>
+              {% if w.wallet_address %}
+                <span id="withdrawal-{{ w.id }}-wallet-full" style="display: none;">{{ w.wallet_address }}</span>
+                <button onclick="copyWithdrawalAddress('withdrawal-{{ w.id }}-wallet-full')" 
+                        class="btn btn-secondary btn-sm" 
+                        style="margin-left: 8px; padding: 4px 8px; font-size: 0.75rem;"
+                        title="Copy full wallet address">
+                  📋 Copy
+                </button>
+              {% endif %}
+            </td>
             <td><span class="status-{{ w.status }}">{{ w.status }}</span></td>
             <td>{{ w.created_at|date:"M j, H:i" }}</td>
             <td>
@@ -79,4 +90,37 @@
     </div>
   </div>
 </div>
+
+<script>
+function copyWithdrawalAddress(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        const text = element.textContent;
+        navigator.clipboard.writeText(text).then(function() {
+            // Find the visible element to show feedback
+            const visibleElementId = elementId.replace('-full', '');
+            const visibleElement = document.getElementById(visibleElementId);
+            
+            if (visibleElement) {
+                // Show success feedback on visible element
+                const originalText = visibleElement.textContent;
+                visibleElement.textContent = '✅ Full Address Copied!';
+                visibleElement.style.backgroundColor = '#4CAF50';
+                visibleElement.style.color = 'white';
+                
+                // Reset after 2 seconds
+                setTimeout(function() {
+                    visibleElement.textContent = originalText;
+                    visibleElement.style.backgroundColor = '';
+                    visibleElement.style.color = '';
+                }, 2000);
+            }
+        }).catch(function(err) {
+            console.error('Failed to copy: ', err);
+            alert('Failed to copy address. Please copy manually.');
+        });
+    }
+}
+</script>
+
 {% endblock %}

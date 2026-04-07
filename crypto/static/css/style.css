@@ -1,5 +1,5 @@
 :root {
-  --bg: linear-gradient(135deg, #87CEEB 0%, #4A90E2 50%, #2E7CD6 100%);
+  --bg: linear-gradient(135deg, #E6F3FF 0%, #B8E0F5 50%, #A8D5F0 100%);
   --card-light: #ffffff;
   --card-dark: #f0f8ff;
   --text: #2c3e50;
@@ -23,6 +23,25 @@ button, .btn {
   transition: transform 0.15s, box-shadow 0.15s, background-color 0.3s; 
   position: relative;
   overflow: hidden;
+}
+
+/* Button with Icon */
+.btn-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+}
+
+.btn-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.btn-with-icon:hover .btn-icon {
+  transform: scale(1.1);
 }
 
 /* Base hover effects */
@@ -225,8 +244,65 @@ header {
 .nav-menu { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .nav-menu a { color: var(--text); font-weight: 500; }
 .nav-menu a:hover { color: var(--info); }
+
+/* Navigation Items with Icons */
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.nav-item:hover {
+  background: rgba(74, 144, 226, 0.1);
+  color: var(--info);
+  transform: translateY(-2px);
+}
+
+.nav-item span {
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.nav-item:hover .nav-icon {
+  transform: scale(1.1);
+}
 .nav-toggle { display: none; background: 0; border: 0; font-size: 1.5rem; padding: 8px; cursor: pointer; color: var(--text); }
-.brand { font-weight: 700; font-size: 1.25rem; color: var(--text); }
+.brand { font-weight: 700; font-size: 1.25rem; color: var(--text); text-decoration: none; }
+
+/* Logo Styles */
+.logo-container {
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.logo-container:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+.logo-image {
+  height: 40px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
 .btn-primary { background: var(--info); color: #fff; }
 .btn-success { background: var(--success); color: #fff; }
 .btn-secondary { background: var(--card-dark); color: var(--text); border: 1px solid var(--border); }

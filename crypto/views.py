@@ -1819,6 +1819,9 @@ def admin_withdrawal_approve_view(request, pk):
     if w.status not in ['pending', 'pending_admin_approval']:
         messages.warning(request, "Withdrawal is not pending.")
         return redirect('crypto:admin_withdrawals')
+    if w.user.is_banned:
+        messages.error(request, "Cannot approve withdrawal for banned user.")
+        return redirect('crypto:admin_withdrawals')
     w.status = 'approved'
     w.processed_at = timezone.now()
     w.save(update_fields=['status', 'processed_at'])
@@ -1868,6 +1871,9 @@ def admin_local_withdrawal_approve_view(request, pk):
     w = get_object_or_404(LocalWithdrawal, pk=pk)
     if w.status != 'pending_admin_approval':
         messages.warning(request, "Local withdrawal is not pending.")
+        return redirect('crypto:admin_local_withdrawals')
+    if w.user.is_banned:
+        messages.error(request, "Cannot approve withdrawal for banned user.")
         return redirect('crypto:admin_local_withdrawals')
     
     # Change status to approved first
@@ -1997,7 +2003,7 @@ def admin_user_ban_view(request, pk):
     u = get_object_or_404(User, pk=pk)
     if u.is_staff:
         messages.error(request, "Cannot ban admin.")
-        return redirect('crypto:admin_users')
+        return redirect('crypto:admin_users')  # Added return statement here
     u.is_banned = True
     u.is_flagged = True
     u.save(update_fields=['is_banned', 'is_flagged'])
@@ -2010,8 +2016,9 @@ def admin_user_ban_view(request, pk):
 def admin_user_unban_view(request, pk):
     u = get_object_or_404(User, pk=pk)
     u.is_banned = False
-    u.save(update_fields=['is_banned'])
-    messages.success(request, "User unbanned.")
+    u.is_flagged = False
+    u.save(update_fields=['is_banned', 'is_flagged'])
+    messages.success(request, "User unbanned and all capabilities restored.")
     return redirect('crypto:admin_users')
 
 # --- Promo codes ---

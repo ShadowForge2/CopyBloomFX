@@ -61,7 +61,10 @@
       <h2>Copy Trades</h2>
       <form method="post" action="{% url 'crypto:copy_trade_simulate' %}" style="display:inline;">
         {% csrf_token %}
-        <button type="submit" class="btn btn-primary">Copy trade simulation</button>
+        <button type="submit" class="btn btn-primary btn-with-icon">
+          <img src="{% static 'images/nav/copy-trade.png' %}" alt="Copy Trade" class="btn-icon">
+          Start copy trades
+        </button>
       </form>
     </div>
     <p class="muted">Live updates. Limit per rank enforced. Shows individual trade P&L (separate from daily yield).</p>

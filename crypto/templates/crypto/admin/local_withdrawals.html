@@ -46,8 +46,15 @@
             <td>
               <div style="font-size: 0.875rem;">
                 <strong>{{ w.bank_name }}</strong><br>
-                {{ w.account_number }}<br>
+                <span id="withdrawal-{{ w.id }}-address">{{ w.account_number }}</span>
+                <span id="withdrawal-{{ w.id }}-address-full" style="display: none;">{{ w.account_number }}</span><br>
                 {{ w.account_holder_name }}
+                <button onclick="copyWithdrawalAddress('withdrawal-{{ w.id }}-address-full')" 
+                        class="btn btn-secondary btn-sm" 
+                        style="margin-left: 8px; padding: 4px 8px; font-size: 0.75rem;"
+                        title="Copy full withdrawal address">
+                  📋 Copy
+                </button>
               </div>
             </td>
             <td>
@@ -96,4 +103,37 @@
     </div>
   </div>
 </div>
+
+<script>
+function copyWithdrawalAddress(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        const text = element.textContent;
+        navigator.clipboard.writeText(text).then(function() {
+            // Find the visible element to show feedback
+            const visibleElementId = elementId.replace('-full', '');
+            const visibleElement = document.getElementById(visibleElementId);
+            
+            if (visibleElement) {
+                // Show success feedback on visible element
+                const originalText = visibleElement.textContent;
+                visibleElement.textContent = '✅ Full Address Copied!';
+                visibleElement.style.backgroundColor = '#4CAF50';
+                visibleElement.style.color = 'white';
+                
+                // Reset after 2 seconds
+                setTimeout(function() {
+                    visibleElement.textContent = originalText;
+                    visibleElement.style.backgroundColor = '';
+                    visibleElement.style.color = '';
+                }, 2000);
+            }
+        }).catch(function(err) {
+            console.error('Failed to copy: ', err);
+            alert('Failed to copy address. Please copy manually.');
+        });
+    }
+}
+</script>
+
 {% endblock %}
