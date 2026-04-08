@@ -1,0 +1,39 @@
+# RENDER DEPLOYMENT ENVIRONMENT VARIABLES
+# Copy and paste these into your Render service Environment tab
+
+# ==============================================
+# REQUIRED ENVIRONMENT VARIABLES
+# ==============================================
+
+# Django Configuration
+SECRET_KEY=n6vm0&858vox-!_2#@bstzl%*li4+epamik%9lp2dy_0qgbxh8
+DJANGO_SETTINGS_MODULE=crypto_platform.render_settings
+
+# Paystack Configuration (Use LIVE keys for production)
+PAYSTACK_SECRET_KEY=sk_live_your_live_secret_key_here
+PAYSTACK_PUBLIC_KEY=pk_live_your_live_public_key_here
+
+# ==============================================
+# AUTO-PROVIDED BY RENDER (Don't add manually)
+# ==============================================
+# DATABASE_URL=postgresql://username:password@host:port/database
+# RENDER_EXTERNAL_HOSTNAME=your-app-name.onrender.com
+
+# ==============================================
+# HOW TO ADD TO RENDER:
+# ==============================================
+# 1. Go to your Render dashboard
+# 2. Select your Web Service
+# 3. Click "Environment" tab
+# 4. Add the 4 required variables above
+# 5. Create PostgreSQL service (DATABASE_URL auto-added)
+# 6. Deploy!
+
+# ==============================================
+# IMPORTANT NOTES:
+# ==============================================
+# - Replace PAYSTACK keys with your LIVE keys
+# - SECRET_KEY is already generated for you
+# - DATABASE_URL is auto-added when you create PostgreSQL
+# - RENDER_EXTERNAL_HOSTNAME is auto-added by Render
+# - Test with Paystack TEST keys first, then switch to LIVE
