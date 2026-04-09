@@ -918,6 +918,25 @@ def copy_trade_simulate_view(request):
 # =============================================================================
 
 @login_required(login_url='crypto:login')
+def platform_view(request):
+    """CopyBloom Platform landing page for authenticated users"""
+    if request.user.is_banned:
+        return redirect('crypto:login')
+    
+    profile = get_object_or_404(Profile, user=request.user)
+    
+    # Get user statistics for display
+    total_balance = profile.total_balance
+    todays_profit = generate_daily_profit(profile) if total_balance > 0 else Decimal('0')
+    
+    ctx = {
+        'profile': profile,
+        'total_balance': total_balance,
+        'todays_profit': todays_profit,
+    }
+    return render(request, 'crypto/platform.html', ctx)
+
+@login_required(login_url='crypto:login')
 def finance_view(request):
     if request.user.is_banned:
         return redirect('crypto:login')

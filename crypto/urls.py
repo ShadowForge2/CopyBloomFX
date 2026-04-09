@@ -8,11 +8,12 @@ from . import views
 app_name = 'crypto'
 
 urlpatterns = [
-    path('', views.dashboard_view, name='dashboard'),
+    path('', views.platform_view, name='platform'),
     path('login/', views.login_view, name='login'),
     path('signup/', views.signup_view, name='signup'),
     path('logout/', views.logout_view, name='logout'),
     path('admin/login/', views.admin_login_view, name='admin_login'),
+    path('dashboard/', views.dashboard_view, name='dashboard'),
     path('finance/', views.finance_view, name='finance'),
     path('profile/', views.profile_view, name='profile'),
     path('contact/', views.contact_view, name='contact'),

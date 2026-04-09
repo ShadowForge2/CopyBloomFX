@@ -43,7 +43,7 @@ INSTALLED_APPS = [
 
 AUTH_USER_MODEL = 'crypto.CustomUser'
 LOGIN_URL = 'crypto:login'
-LOGIN_REDIRECT_URL = 'crypto:dashboard'
+LOGIN_REDIRECT_URL = 'crypto:platform'
 LOGOUT_REDIRECT_URL = 'crypto:login'
 
 MIDDLEWARE = [

@@ -1,0 +1,188 @@
+{% extends "crypto/base.html" %}
+{% load static %}
+
+{% block title %}CopyBloom Trading Platform{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Platform Hero Section -->
+  <div class="platform-hero">
+    <div class="hero-content">
+      <h1 class="platform-title">Welcome to CopyBloom Trading Platform</h1>
+      <p class="platform-subtitle">Your Gateway to Professional Cryptocurrency Trading</p>
+      
+      <div class="platform-stats">
+        <div class="stat-item">
+          <div class="stat-number">$10M+</div>
+          <div class="stat-label">Total Trading Volume</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">5,000+</div>
+          <div class="stat-label">Active Traders</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">99.9%</div>
+          <div class="stat-label">Uptime</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features Section -->
+  <div class="features-section">
+    <h2 class="section-title">Why Choose CopyBloom?</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">copy</div>
+        <h3>Copy Trading</h3>
+        <p>Follow successful traders and automatically copy their trades. Learn from experts while growing your portfolio.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">trending_up</div>
+        <h3>Daily Profits</h3>
+        <p>Earn consistent daily profits based on your investment tier. Rates up to 5% daily for premium members.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">security</div>
+        <h3>Secure Platform</h3>
+        <p>Bank-level security with 2FA, cold storage, and encrypted transactions to keep your funds safe.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">payments</div>
+        <h3>Multiple Payment Methods</h3>
+        <p>Deposit and withdraw using cryptocurrency, Paystack, and local bank transfers for your convenience.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">people</div>
+        <h3>Referral Program</h3>
+        <p>Earn generous bonuses by referring friends. Get rewarded when they deposit and trade on the platform.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">support_agent</div>
+        <h3>24/7 Support</h3>
+        <p>Get help anytime with our dedicated support team. Fast response times and expert assistance.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Investment Tiers -->
+  <div class="tiers-section">
+    <h2 class="section-title">Investment Tiers</h2>
+    <div class="tiers-grid">
+      <div class="tier-card basic">
+        <div class="tier-header">
+          <h3>Basic</h3>
+          <div class="tier-price">$100 - $999</div>
+        </div>
+        <ul class="tier-features">
+          <li>1.67% Daily Profit</li>
+          <li>3 Copy Trades</li>
+          <li>Email Support</li>
+          <li>Basic Analytics</li>
+        </ul>
+      </div>
+      
+      <div class="tier-card premium">
+        <div class="tier-header">
+          <h3>Premium</h3>
+          <div class="tier-price">$1,000 - $4,999</div>
+        </div>
+        <ul class="tier-features">
+          <li>2.5% Daily Profit</li>
+          <li>5 Copy Trades</li>
+          <li>Priority Support</li>
+          <li>Advanced Analytics</li>
+          <li>Weekly Reports</li>
+        </ul>
+      </div>
+      
+      <div class="tier-card vip">
+        <div class="tier-header">
+          <h3>VIP</h3>
+          <div class="tier-price">$5,000+</div>
+        </div>
+        <ul class="tier-features">
+          <li>5% Daily Profit</li>
+          <li>Unlimited Copy Trades</li>
+          <li>Dedicated Manager</li>
+          <li>Real-time Signals</li>
+          <li>Custom Strategies</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Getting Started -->
+  <div class="getting-started">
+    <h2 class="section-title">Getting Started</h2>
+    <div class="steps-grid">
+      <div class="step-item">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Create Account</h3>
+          <p>Sign up in minutes with our simple registration process.</p>
+        </div>
+      </div>
+      
+      <div class="step-item">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Deposit Funds</h3>
+          <p>Choose from multiple payment methods to fund your account.</p>
+        </div>
+      </div>
+      
+      <div class="step-item">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Start Trading</h3>
+          <p>Begin copy trading or manual trading to grow your investment.</p>
+        </div>
+      </div>
+      
+      <div class="step-item">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Withdraw Profits</h3>
+          <p>Access your earnings anytime with fast withdrawal processing.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions">
+    <h2 class="section-title">Quick Actions</h2>
+    <div class="actions-grid">
+      <a href="{% url 'crypto:dashboard' %}" class="action-card">
+        <div class="action-icon">dashboard</div>
+        <h3>Dashboard</h3>
+        <p>View your portfolio and earnings</p>
+      </a>
+      
+      <a href="{% url 'crypto:finance' %}" class="action-card">
+        <div class="action-icon">account_balance</div>
+        <h3>Finance</h3>
+        <p>Deposit and withdraw funds</p>
+      </a>
+      
+      <a href="{% url 'crypto:referral' %}" class="action-card">
+        <div class="action-icon">share</div>
+        <h3>Referral</h3>
+        <p>Invite friends and earn bonuses</p>
+      </a>
+      
+      <a href="{% url 'crypto:profile' %}" class="action-card">
+        <div class="action-icon">person</div>
+        <h3>Profile</h3>
+        <p>Manage your account settings</p>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
