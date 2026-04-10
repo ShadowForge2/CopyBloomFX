@@ -58,7 +58,7 @@ class Profile(models.Model):
     total_referrals = models.IntegerField(default=0)
     valid_referrals = models.IntegerField(default=0)
     referral_earnings = models.DecimalField(max_digits=18, decimal_places=2, default=Decimal('0'))
-    # last_daily_profit_at = models.DateTimeField(null=True, blank=True, default=None)  # Track daily profit generation
+    last_daily_profit_at = models.DateTimeField(null=True, blank=True, default=None)  # Track daily profit generation
     last_withdrawal_at = models.DateTimeField(null=True, blank=True)
 
     @property

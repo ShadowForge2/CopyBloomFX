@@ -367,13 +367,13 @@ def admin_required(view_func):
             messages.error(request, 'You are not authorized to access this page.')
             return redirect('crypto:admin_login')
         
-        # Check admin session timeout (1 minute)
+        # Check admin session timeout (5 minutes)
         admin_last_activity = request.session.get('admin_last_activity')
         current_time = timezone.now().timestamp()
         
         if admin_last_activity:
             session_age = current_time - admin_last_activity
-            if session_age > 60:  # 60 seconds = 1 minute
+            if session_age > 300:  # 300 seconds = 5 minutes
                 # Clear admin session and force re-authentication
                 del request.session['admin_last_activity']
                 messages.warning(request, 'Admin session expired. Please log in again.')
@@ -927,7 +927,13 @@ def platform_view(request):
     
     # Get user statistics for display
     total_balance = profile.total_balance
-    todays_profit = generate_daily_profit(profile) if total_balance > 0 else Decimal('0')
+    
+    # Calculate potential daily profit for display (without adding to balance)
+    todays_profit = Decimal('0')
+    if total_balance > 0 and profile.locked_balance > 0:
+        rank = profile.get_rank()
+        if rank and rank.daily_profit_pct:
+            todays_profit = profile.locked_balance * (Decimal(str(rank.daily_profit_pct)) / Decimal('100'))
     
     ctx = {
         'profile': profile,

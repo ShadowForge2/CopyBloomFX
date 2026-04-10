@@ -52,7 +52,10 @@ def generate_daily_profit(user):
     today = timezone.now().date()
     
     # Check if profit already generated for today
-    # TODO: Implement this check after migration
+    if profile.last_daily_profit_at:
+        last_profit_date = profile.last_daily_profit_at.date()
+        if last_profit_date == today:
+            return None  # Already generated today
     
     # Calculate daily profit: locked_balance * daily_profit_percentage / 100
     daily_profit_amount = profile.locked_balance * (rank.daily_profit_percentage / Decimal('100'))
@@ -62,7 +65,9 @@ def generate_daily_profit(user):
     
     # Add profit to withdrawable balance
     profile.withdrawable_balance += daily_profit_amount
-    profile.save(update_fields=['withdrawable_balance'])
+    profile.last_daily_profit_at = timezone.now()
+    
+    profile.save(update_fields=['withdrawable_balance', 'last_daily_profit_at'])
     
     return daily_profit_amount
 

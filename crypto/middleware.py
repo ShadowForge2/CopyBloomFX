@@ -14,7 +14,7 @@ class AdminSessionTimeoutMiddleware:
             
             if admin_last_activity:
                 session_age = current_time - admin_last_activity
-                if session_age > 60:  # 1 minute timeout
+                if session_age > 300:  # 5 minutes timeout (300 seconds)
                     # Clear session and force re-authentication
                     request.session.flush()
                     messages.warning(request, 'Admin session expired. Please log in again.')

@@ -52,11 +52,17 @@
       text-decoration: none;
       padding: 0.5rem 0.75rem;
       border-radius: 4px;
-      transition: background-color 0.3s ease;
+      transition: all 0.3s ease;
+      font-weight: bold;
+      background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+      border: none;
+      box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
     }
     
     .nav-menu a:hover {
-      background-color: rgba(255,255,255,0.1);
+      background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(139, 92, 246, 0.4);
     }
     
     .user-row {
@@ -162,7 +168,6 @@
       <!-- User info row -->
       <div class="user-row">
         <span class="username">{{ user.username }} (Admin)</span>
-        <a href="{% url 'crypto:logout' %}" class="btn btn-danger">Logout</a>
       </div>
     </div>
   </header>
@@ -203,7 +208,6 @@
     });
   </script>
   <script src="{% static 'js/main.js' %}"></script>
-  <script src="{% static 'js/admin_session_timeout.js' %}"></script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>

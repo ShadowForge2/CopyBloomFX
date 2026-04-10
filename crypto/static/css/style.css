@@ -481,6 +481,44 @@ header {
   font-size: 2rem;
   margin-bottom: 1rem;
   color: var(--info);
+  font-family: 'Material Icons', sans-serif;
+}
+
+.action-icon::before {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+.action-icon:empty::before {
+  content: "help"; /* Fallback icon */
+}
+
+/* Hide text content and use pseudo-elements for icons */
+.action-icon:not(:empty) {
+  color: transparent;
+  position: relative;
+}
+
+.action-icon:not(:empty)::after {
+  content: attr(data-icon);
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--info);
+  font-family: 'Material Icons';
+  font-size: 2rem;
 }
 
 .action-card h3 {
