@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_POST, require_GET
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
+from django.utils.timesince import timesince
 from datetime import timedelta
 
 from .models import (
@@ -1263,12 +1264,37 @@ def profile_view(request):
         form = ProfileUpdateForm(request.POST, request.FILES, user=request.user, instance=profile)
         
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile updated successfully!')
-            # Reload the profile to get updated data
-            profile.refresh_from_db()
-            # Create new form with updated instance
-            form = ProfileUpdateForm(user=request.user, instance=profile)
+            # Check if any changes were made
+            has_changes = False
+            changed_fields = []
+            
+            # Check for profile picture change
+            if 'profile_picture' in form.changed_data:
+                has_changes = True
+                changed_fields.append('profile picture')
+            
+            # Check for email change
+            new_email = form.cleaned_data.get('email', '').strip()
+            if new_email and new_email != request.user.email:
+                has_changes = True
+                changed_fields.append('email')
+            
+            if has_changes:
+                form.save()
+                # Update email if changed
+                if 'email' in changed_fields:
+                    request.user.email = new_email
+                    request.user.save(update_fields=['email'])
+                
+                changes_text = ', '.join(changed_fields)
+                messages.success(request, f'Profile updated successfully! Changes made to: {changes_text}')
+                
+                # Reload profile to get updated data
+                profile.refresh_from_db()
+                # Create new form with updated instance
+                form = ProfileUpdateForm(user=request.user, instance=profile)
+            else:
+                messages.info(request, 'No changes made. Profile already up to date.')
     else:
         form = ProfileUpdateForm(user=request.user, instance=profile)
     
@@ -2076,6 +2102,173 @@ def admin_user_unban_view(request, pk):
     u.save(update_fields=['is_banned', 'is_flagged'])
     messages.success(request, "User unbanned and all capabilities restored.")
     return redirect('crypto:admin_users')
+
+@admin_required
+@login_required
+def admin_search_users_view(request):
+    """Search users for notification targeting"""
+    query = request.GET.get('q', '').strip()
+    
+    if len(query) < 2:
+        return JsonResponse({'users': []})
+    
+    try:
+        users = User.objects.filter(
+            Q(username__icontains=query) | 
+            Q(email__icontains=query)
+        ).filter(is_active=True)[:10]  # Limit to 10 results
+        
+        user_data = []
+        for user in users:
+            user_data.append({
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'full_name': getattr(user, 'full_name', '')
+            })
+        
+        return JsonResponse({'users': user_data})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+@require_POST
+def mark_notifications_read_view(request):
+    """Mark all notifications as read for the current user"""
+    try:
+        # Mark all unread notifications as read
+        updated_count = Notification.objects.filter(
+            user=request.user, 
+            is_read=False
+        ).update(is_read=True)
+        
+        return JsonResponse({
+            'success': True,
+            'marked_count': updated_count
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+@login_required
+def get_notifications_view(request):
+    """Get notifications for the current user"""
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:10]
+    
+    notification_data = []
+    unread_count = 0
+    
+    for notif in notifications:
+        # Parse the message to extract title and content if it contains markdown formatting
+        message = notif.message
+        title = "Notification"
+        content = message
+        
+        if message.startswith('**') and '**' in message[2:]:
+            parts = message.split('**', 2)
+            if len(parts) >= 3:
+                title = parts[1]
+                content = parts[2].strip()
+        
+        notification_data.append({
+            'id': notif.id,
+            'title': title,
+            'message': content,
+            'time': timesince(notif.created_at),
+            'created_at': notif.created_at.isoformat(),
+            'read': notif.is_read
+        })
+        
+        if not notif.is_read:
+            unread_count += 1
+    
+    return JsonResponse({
+        'notifications': notification_data,
+        'unread_count': unread_count
+    })
+
+@admin_required
+@require_POST
+def admin_send_notification_view(request):
+    """Send system notification to users"""
+    title = request.POST.get('title', '').strip()
+    message = request.POST.get('message', '').strip()
+    send_type = request.POST.get('send_type', 'system_wide')
+    target_users = request.POST.get('target_users', '').strip()
+    
+    if not title or not message:
+        messages.error(request, 'Title and message are required.')
+        return redirect('crypto:admin_dashboard')
+    
+    try:
+        if send_type == 'system_wide':
+            # Send to all users
+            users = User.objects.filter(is_active=True)
+            notifications_created = 0
+            for user in users:
+                # Include title in the message since model doesn't have title field
+                full_message = f"**{title}**\n\n{message}"
+                Notification.objects.create(
+                    user=user,
+                    message=full_message
+                )
+                notifications_created += 1
+            
+            messages.success(request, f'System-wide notification "{title}" sent to {notifications_created} users!')
+        
+        elif send_type == 'targeted':
+            # Send to specific users
+            if not target_users:
+                messages.error(request, 'Please specify target users when using targeted sending.')
+                return redirect('crypto:admin_dashboard')
+            
+            # Parse target users (one per line)
+            target_list = [u.strip() for u in target_users.split('\n') if u.strip()]
+            users_found = []
+            users_not_found = []
+            notifications_created = 0
+            
+            for target in target_list:
+                # Try to find user by username or email
+                user = User.objects.filter(
+                    Q(username=target) | Q(email=target)
+                ).filter(is_active=True).first()
+                
+                if user:
+                    users_found.append(user.username)
+                    full_message = f"**{title}**\n\n{message}"
+                    Notification.objects.create(
+                        user=user,
+                        message=full_message
+                    )
+                    notifications_created += 1
+                else:
+                    users_not_found.append(target)
+            
+            # Provide feedback
+            if notifications_created > 0:
+                success_msg = f'Notification "{title}" sent to {notifications_created} users'
+                if users_found:
+                    success_msg += f': {", ".join(users_found[:5])}'
+                    if len(users_found) > 5:
+                        success_msg += f' and {len(users_found) - 5} more'
+                messages.success(request, success_msg + '!')
+            
+            if users_not_found:
+                error_msg = f'Users not found: {", ".join(users_not_found[:5])}'
+                if len(users_not_found) > 5:
+                    error_msg += f' and {len(users_not_found) - 5} more'
+                messages.warning(request, error_msg)
+        
+        else:
+            messages.error(request, 'Invalid send type specified.')
+    
+    except Exception as e:
+        messages.error(request, f'Error sending notification: {str(e)}')
+    
+    return redirect('crypto:admin_dashboard')
 
 # --- Promo codes ---
 @admin_required

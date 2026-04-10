@@ -50,4 +50,8 @@ urlpatterns = [
     path('admin/users/<int:pk>/unflag/', views.admin_user_unflag_view, name='admin_user_unflag'),
     path('admin/users/<int:pk>/ban/', views.admin_user_ban_view, name='admin_user_ban'),
     path('admin/users/<int:pk>/unban/', views.admin_user_unban_view, name='admin_user_unban'),
+    path('admin/search-users/', views.admin_search_users_view, name='admin_search_users'),
+    path('admin/send-notification/', views.admin_send_notification_view, name='admin_send_notification'),
+    path('notifications/', views.get_notifications_view, name='get_notifications'),
+    path('notifications/mark-read/', views.mark_notifications_read_view, name='mark_notifications_read'),
 ]

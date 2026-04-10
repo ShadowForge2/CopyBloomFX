@@ -72,6 +72,66 @@
       </a>
     </div>
   </div>
+
+  <!-- Notification System -->
+  <div class="notification-section">
+    <h2 class="section-title">Send System Notification</h2>
+    <div class="notification-form-container">
+      <form method="post" action="{% url 'crypto:admin_send_notification' %}" class="notification-form">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="notification-title">Notification Title</label>
+          <input type="text" id="notification-title" name="title" class="form-control" required placeholder="Enter notification title">
+        </div>
+        <div class="form-group">
+          <label for="notification-message">Message</label>
+          <textarea id="notification-message" name="message" class="form-control" required placeholder="Enter notification message" rows="3"></textarea>
+        </div>
+        
+        <div class="notification-target-section">
+          <h4>Send To:</h4>
+          <div class="target-options">
+            <div class="target-option">
+              <label>
+                <input type="radio" name="send_type" value="system_wide" checked>
+                <span class="target-label">All Users (System-wide)</span>
+              </label>
+              <p class="target-description">Send notification to all active users in the system</p>
+            </div>
+            
+            <div class="target-option">
+              <label>
+                <input type="radio" name="send_type" value="targeted">
+                <span class="target-label">Specific Users</span>
+              </label>
+              <p class="target-description">Send to selected users by username or email</p>
+            </div>
+          </div>
+          
+          <div class="targeted-users-section" id="targeted-users-section" style="display: none;">
+            <div class="form-group">
+              <label for="target-users">Target Users (one per line)</label>
+              <textarea id="target-users" name="target_users" class="form-control" placeholder="Enter usernames or emails (one per line)&#10;user1&#10;user2@example.com&#10;john_doe" rows="4"></textarea>
+              <small class="form-help">Enter usernames or email addresses, one per line. The system will find matching users.</small>
+            </div>
+            
+            <div class="user-search-section">
+              <div class="form-group">
+                <label for="user-search">Search Users</label>
+                <div class="search-container">
+                  <input type="text" id="user-search" class="form-control" placeholder="Search by username or email...">
+                  <button type="button" class="btn btn-secondary" onclick="searchUsers()">Search</button>
+                </div>
+              </div>
+              <div id="search-results" class="search-results"></div>
+            </div>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Send Notification</button>
+      </form>
+    </div>
+  </div>
 </div>
 
 <style>
@@ -116,6 +176,223 @@
   font-weight: 600;
   text-align: center;
   line-height: 1.2;
+}
+
+/* Notification Form Styles */
+.notification-section {
+  margin-top: 2rem;
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.notification-section .section-title {
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.notification-form-container {
+  max-width: 600px;
+}
+
+.notification-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.notification-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.notification-form .form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.notification-form .form-control:focus {
+  outline: none;
+  border-color: #8B5CF6;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+.notification-form textarea.form-control {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.notification-form .btn {
+  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.notification-form .btn:hover {
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  transform: translateY(-1px);
+}
+
+.notification-form input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+/* Notification Target Selection Styles */
+.notification-target-section {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: var(--card-light);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.notification-target-section h4 {
+  margin: 0 0 1rem 0;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.target-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.target-option {
+  padding: 1rem;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.target-option:hover {
+  border-color: #8B5CF6;
+  box-shadow: 0 2px 4px rgba(139, 92, 246, 0.1);
+}
+
+.target-option input[type="radio"] {
+  margin-right: 0.75rem;
+}
+
+.target-label {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.target-description {
+  margin: 0.5rem 0 0 1.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.targeted-users-section {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.form-help {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.search-container {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.search-container .form-control {
+  flex: 1;
+}
+
+.search-results {
+  margin-top: 1rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-result-item:hover {
+  background: var(--card-light);
+  border-color: #8B5CF6;
+}
+
+.search-result-info {
+  flex: 1;
+}
+
+.search-result-name {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.search-result-email {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.search-result-add {
+  background: #8B5CF6;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.search-result-add:hover {
+  background: #7C3AED;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
 }
 
 /* Mobile specific styles */
@@ -188,4 +465,88 @@
   }
 }
 </style>
+
+<script>
+// Toggle targeted users section based on radio selection
+document.addEventListener('DOMContentLoaded', function() {
+    const radioButtons = document.querySelectorAll('input[name="send_type"]');
+    const targetedSection = document.getElementById('targeted-users-section');
+    
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'targeted') {
+                targetedSection.style.display = 'block';
+            } else {
+                targetedSection.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Search users functionality
+async function searchUsers() {
+    const searchInput = document.getElementById('user-search');
+    const searchResults = document.getElementById('search-results');
+    const targetUsersTextarea = document.getElementById('target-users');
+    const query = searchInput.value.trim();
+    
+    if (query.length < 2) {
+        searchResults.innerHTML = '<p class="form-help">Enter at least 2 characters to search</p>';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/search-users/?q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        
+        if (data.users && data.users.length > 0) {
+            let html = '';
+            data.users.forEach(user => {
+                html += `
+                    <div class="search-result-item">
+                        <div class="search-result-info">
+                            <div class="search-result-name">${user.username}</div>
+                            <div class="search-result-email">${user.email}</div>
+                        </div>
+                        <button type="button" class="search-result-add" onclick="addUserToTarget('${user.username}')">Add</button>
+                    </div>
+                `;
+            });
+            searchResults.innerHTML = html;
+        } else {
+            searchResults.innerHTML = '<p class="form-help">No users found matching your search</p>';
+        }
+    } catch (error) {
+        searchResults.innerHTML = '<p class="form-help">Error searching users. Please try again.</p>';
+    }
+}
+
+// Add user to target list
+function addUserToTarget(username) {
+    const targetUsersTextarea = document.getElementById('target-users');
+    const currentUsers = targetUsersTextarea.value.split('\n').filter(u => u.trim());
+    
+    if (!currentUsers.includes(username)) {
+        currentUsers.push(username);
+        targetUsersTextarea.value = currentUsers.join('\n');
+    }
+    
+    // Clear search
+    document.getElementById('user-search').value = '';
+    document.getElementById('search-results').innerHTML = '';
+}
+
+// Handle Enter key in search input
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('user-search');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchUsers();
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
